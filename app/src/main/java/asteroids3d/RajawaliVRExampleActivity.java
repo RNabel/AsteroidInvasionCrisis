@@ -39,6 +39,4 @@ public class RajawaliVRExampleActivity extends RajawaliVRActivity {
         mRenderer.incrementCameraPosition();
         RajLog.i("onCardboardTrigger");
     }
-
-
 }

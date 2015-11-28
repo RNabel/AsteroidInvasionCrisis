@@ -1,6 +1,7 @@
 package asteroids3d;
 
 //import android.R;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -12,14 +13,17 @@ import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.materials.textures.ATexture.TextureException;
 import org.rajawali3d.materials.textures.NormalMapTexture;
+import org.rajawali3d.materials.textures.SphereMapTexture;
 import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.terrain.SquareTerrain;
+import org.rajawali3d.terrain.Terrain;
 import org.rajawali3d.terrain.TerrainGenerator;
 import org.rajawali3d.util.RajLog;
 import org.rajawali3d.vr.renderer.RajawaliVRRenderer;
+import org.w3c.dom.Text;
 
 public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
     private SquareTerrain mTerrain;
@@ -52,13 +56,38 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
 
         createTerrain();
 
+
+
+        Material material = new Material();
+        material.enableLighting(true);
+        material.setDiffuseMethod(new DiffuseMethod.Lambert());
+        material.setColor(0);
+
+        Texture earthTexture = new Texture("Asteroid", R.drawable.asteroid);
+        try{
+            material.addTexture(earthTexture);
+
+        } catch (TextureException error){
+            RajLog.i("DEBUG TEXTURE ERROR");
+        }
+
         mLookatSphere = new Sphere(1, 12, 12);
         Material sphereMaterial = new Material();
         sphereMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
         sphereMaterial.enableLighting(true);
-        mLookatSphere.setMaterial(sphereMaterial);
+//        sphereMaterial.setColorInfluence(0);
+//        Texture asteroidTexture = new Texture("Sphere texture", R.drawable.earthtruecolor_nasa_big);
+//
+//        try {
+//            sphereMaterial.addTexture(asteroidTexture);
+//            RajLog.i("Successfully set texture.");
+//        } catch (TextureException e) {
+//            e.printStackTrace();
+//            RajLog.i("Terrible error occurred when setting texture");
+//        }
+        mLookatSphere.setMaterial(material);
         mLookatSphere.setColor(Color.YELLOW);
-        mLookatSphere.setPosition(0, 0, -6);
+        mLookatSphere.setPosition(0, 0, 6);
         getCurrentScene().addChild(mLookatSphere);
 
         super.initScene();
@@ -88,9 +117,9 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
             // -- Terrain colors can be set by manually specifying base, middle and
             //    top colors.
             //
-            // --  terrainParams.setBasecolor(Color.argb(255, 0, 0, 0));
-            //     terrainParams.setMiddleColor(Color.argb(255, 200, 200, 200));
-            //     terrainParams.setUpColor(Color.argb(255, 0, 30, 0));
+            terrainParams.setBasecolor(Color.argb(0, 3, 54, 62));
+            terrainParams.setMiddleColor(Color.argb(0, 18, 158, 180));
+            terrainParams.setUpColor(Color.argb(0, 0, 0, 0));
             //
             // -- However, for this example we'll use a bitmap
             //
@@ -138,7 +167,8 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
     @Override
     public void onRender(long elapsedTime, double deltaTime) {
         handleCameraMovement(10);
-        getCurrentCamera().setPosition(cameraPosition);
+//        getCurrentCamera().setPosition(cameraPosition);
+        // Update position of sphere
         super.onRender(elapsedTime, deltaTime);
         boolean isLookingAt = isLookingAtObject(mLookatSphere);
         if (isLookingAt) {
@@ -166,6 +196,10 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
             movement.rotateBy(getCurrentCamera().getOrientation()).multiply(units);
             movement.inverse();
             cameraPosition = cameraPosition.add(movement);
+            // set globe position
+            Vector3 spherePos = cameraPosition.clone();
+            spherePos.add(movement);
+            mLookatSphere.setPosition(spherePos);
 //            getCurrentCamera().setPosition(getCurrentCamera().getPosition().add(movement));
             output += "New position: " + movement;
             RajLog.i(output);
