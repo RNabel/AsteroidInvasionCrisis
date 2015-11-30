@@ -1,7 +1,5 @@
 package asteroids3d;
 
-//import android.R;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,19 +11,21 @@ import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.materials.textures.ATexture.TextureException;
 import org.rajawali3d.materials.textures.NormalMapTexture;
-import org.rajawali3d.materials.textures.SphereMapTexture;
 import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
+import org.rajawali3d.primitives.Plane;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.terrain.SquareTerrain;
-import org.rajawali3d.terrain.Terrain;
 import org.rajawali3d.terrain.TerrainGenerator;
 import org.rajawali3d.util.RajLog;
 import org.rajawali3d.vr.renderer.RajawaliVRRenderer;
-import org.w3c.dom.Text;
+
+import asteroids3d.gamestate.objects.ProgramState;
 
 public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
+    private static RajawaliVRExampleRenderer currentRenderer;
+    private ProgramState currentState;
     private SquareTerrain mTerrain;
     private Sphere mLookatSphere;
 
@@ -42,6 +42,13 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
 
     @Override
     public void initScene() {
+        // Set singleton renderer to current object to be referenced by various Managers.
+        currentRenderer = this;
+
+        // Set frame rate.
+        setFrameRate(30);
+
+        // Set up lights.
         DirectionalLight light = new DirectionalLight(0.2f, -1f, 0f);
         light.setPower(.7f);
         getCurrentScene().addLight(light);
@@ -56,8 +63,7 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
 
         createTerrain();
 
-
-
+        // Create sample asteroid
         Material material = new Material();
         material.enableLighting(true);
         material.setDiffuseMethod(new DiffuseMethod.Lambert());
@@ -71,10 +77,9 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
             RajLog.i("DEBUG TEXTURE ERROR");
         }
 
-        mLookatSphere = new Sphere(1, 12, 12);
-        Material sphereMaterial = new Material();
-        sphereMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
-        sphereMaterial.enableLighting(true);
+//        Material sphereMaterial = new Material();
+//        sphereMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
+//        sphereMaterial.enableLighting(true);
 //        sphereMaterial.setColorInfluence(0);
 //        Texture asteroidTexture = new Texture("Sphere texture", R.drawable.earthtruecolor_nasa_big);
 //
@@ -85,6 +90,7 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
 //            e.printStackTrace();
 //            RajLog.i("Terrible error occurred when setting texture");
 //        }
+        mLookatSphere = new Sphere(1, 12, 12);
         mLookatSphere.setMaterial(material);
         mLookatSphere.setColor(Color.YELLOW);
         mLookatSphere.setPosition(0, 0, 6);
@@ -98,12 +104,16 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         // -- Load a bitmap that represents the terrain. Its color values will
         //    be used to generate heights.
         //
-
         Bitmap bmp = BitmapFactory.decodeResource(mContext.getResources(),
                 R.drawable.grid);
-
+        Plane mPlane = new Plane();
+        Material material1 = new Material();
+        material1.setColorInfluence(1);
+        mPlane.setMaterial(material1);
+        mPlane.setColor(0xffffff00);
+//        mPlane.setDrawingMode(GLES20.GL_LINE_LOOP);
+        getCurrentScene().addChild(mPlane);
         try {
-//            getCurrentScene().setSkybox(R.drawable.posx, R.drawable.negx, R.drawable.posy, R.drawable.negy, R.drawable.posz, R.drawable.negz);
             getCurrentScene().setSkybox(R.drawable.right, R.drawable.left, R.drawable.top, R.drawable.bottom, R.drawable.front, R.drawable.back);
             SquareTerrain.Parameters terrainParams = SquareTerrain.createParameters(bmp);
             // -- set terrain scale
@@ -167,7 +177,7 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
     @Override
     public void onRender(long elapsedTime, double deltaTime) {
         handleCameraMovement(10);
-//        getCurrentCamera().setPosition(cameraPosition);
+        getCurrentCamera().setPosition(cameraPosition);
         // Update position of sphere
         super.onRender(elapsedTime, deltaTime);
         boolean isLookingAt = isLookingAtObject(mLookatSphere);
@@ -195,15 +205,19 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
             final Vector3 movement = WorldParameters.FORWARD_AXIS.clone();
             movement.rotateBy(getCurrentCamera().getOrientation()).multiply(units);
             movement.inverse();
-            cameraPosition = cameraPosition.add(movement);
+            cameraPosition = cameraPosition.clone().add(movement);
+
             // set globe position
             Vector3 spherePos = cameraPosition.clone();
             spherePos.add(movement);
             mLookatSphere.setPosition(spherePos);
-//            getCurrentCamera().setPosition(getCurrentCamera().getPosition().add(movement));
             output += "New position: " + movement;
             RajLog.i(output);
             move = false;
         }
+    }
+
+    public static RajawaliVRExampleRenderer getCurrentRenderer() {
+        return currentRenderer;
     }
 }
