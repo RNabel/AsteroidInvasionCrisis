@@ -39,7 +39,7 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
     public int isTriggered = 0;
     private boolean isTabbed;
 
-    private Vector3 cameraPosition = new Vector3(0, 0, 1);
+    private Vector3 cameraPosition = new Vector3(0, 5, 0);
 
     public RajawaliVRExampleRenderer(Context context) {
         super(context);
@@ -226,6 +226,7 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
             final Vector3 movement = WorldParameters.FORWARD_AXIS.clone();
             movement.rotateBy(getCurrentCamera().getOrientation()).multiply(units);
             movement.inverse();
+            movement.z = 0;
             cameraPosition = cameraPosition.clone().add(movement);
 
             // set globe position
