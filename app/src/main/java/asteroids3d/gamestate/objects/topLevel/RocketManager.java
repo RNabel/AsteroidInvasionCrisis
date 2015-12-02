@@ -27,7 +27,7 @@ public class RocketManager extends Manager {
     List<Rocket> rockets = new ArrayList<>();
 
     @Override
-    public void update(Long currentFrame) {
+    public void update(double currentFrame, long totalTime) {
         // Update all rockets.
         Iterator<Rocket> it = rockets.iterator();
 

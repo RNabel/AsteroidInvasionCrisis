@@ -13,7 +13,7 @@ public abstract class MovingObject extends StationaryObject {
     // Acceleration and Velocity forces from collisions or gravity, reset after each frame.
     private Vector3 outerAcceleration = new Vector3(0, 0, 0);
     private Vector3 outerVelocity = new Vector3(0, 0, 0);
-    private final Vector3 gravity = new Vector3(0, 0.0001, 0);
+    private final Vector3 gravity = new Vector3(0, -0.0001, 0);
 
     private boolean isInfluencedByGrav = true;
 
@@ -33,29 +33,31 @@ public abstract class MovingObject extends StationaryObject {
         Vector3 velocity = calculateCurrentVelocity(this.velocity, 0);
         location.add(velocity);
 
-        // Update velocity
-        Vector3 acceleration = calculateCurrentAcceleration(this.acceleration, 0);
-        this.acceleration.add(acceleration);
-        velocity.add(this.acceleration);
+        // Update position of asteroid.
+        this.getShape().setPosition(location);
 
+        // Update velocity
+//        Vector3 acceleration = calculateCurrentAcceleration(this.acceleration, 0);
+//        this.acceleration.add(acceleration);
+//        velocity.add(this.acceleration);
 
         // Calculate and apply drag.
-        velocity.multiply(AIR_DRAG);
+//        velocity.multiply(AIR_DRAG);
 
         // Add and apply gravity.
-        if (isInfluencedByGrav) {
-            acceleration.add(gravity);
-        }
+//        if (isInfluencedByGrav) {
+//            acceleration.add(gravity);
+//        }
 
         // Check if on screen. TODO write basic tests.
         Vector3 max = this.getManager().getBoundingBox().getMax();
         Vector3 min = this.getManager().getBoundingBox().getMin();
-        return location.x > min.x &&
-                location.x < max.x &&
-                location.y > min.y &&
-                location.y < max.y &&
-                location.z > min.z &&
-                location.z < max.z;
+        return location.x >= min.x &&
+                location.x <= max.x &&
+                location.y >= min.y &&
+                location.y <= max.y &&
+                location.z >= min.z &&
+                location.z <= max.z;
     }
 
     public abstract Vector3 calculateCurrentVelocity(Vector3 currentVelocity, double time);

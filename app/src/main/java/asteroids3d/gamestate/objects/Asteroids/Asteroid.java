@@ -47,14 +47,18 @@ public class Asteroid extends MovingObject {
     private Sphere shape;
     private int radius;
 
-    public Asteroid(Manager manager, Vector3 location, Vector3 acceleration, Vector3 velocity, int radius) {
+    public Asteroid(Manager manager,
+                    Vector3 location,
+                    Vector3 acceleration,
+                    Vector3 velocity,
+                    int radius) {
         super(manager, location, acceleration, velocity);
         this.radius = radius;
         this.shape = new Sphere(radius, SEGMENTS_W, SEGMENTS_H);
         shape = new Sphere(1, 12, 12);
         shape.setMaterial(asteroidMaterial);
         shape.setColor(Color.YELLOW);
-        shape.setPosition(0, 0, 6);
+        shape.setPosition(location);
 
         // Add the asteroid to the
         getManager().getCurrentScene().addChild(shape);

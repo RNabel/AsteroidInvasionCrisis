@@ -25,9 +25,9 @@ public class TopLevelManager extends Manager {
     }
 
     @Override
-    public void update(Long currentFrame) {
-        rManager.update(currentFrame);
-        eManager.update(currentFrame);
+    public void update(double currentFrame, long totalTime) {
+        rManager.update(currentFrame, totalTime);
+        eManager.update(currentFrame, totalTime);
     }
 
     public List<Rocket> getRockets() {

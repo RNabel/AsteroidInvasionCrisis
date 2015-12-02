@@ -5,15 +5,17 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 
+import org.rajawali3d.Object3D;
 import org.rajawali3d.WorldParameters;
+import org.rajawali3d.bounds.BoundingBox;
 import org.rajawali3d.lights.DirectionalLight;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.materials.textures.ATexture.TextureException;
 import org.rajawali3d.materials.textures.NormalMapTexture;
 import org.rajawali3d.materials.textures.Texture;
-import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
+import org.rajawali3d.primitives.Cube;
 import org.rajawali3d.primitives.Plane;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.terrain.SquareTerrain;
@@ -21,18 +23,21 @@ import org.rajawali3d.terrain.TerrainGenerator;
 import org.rajawali3d.util.RajLog;
 import org.rajawali3d.vr.renderer.RajawaliVRRenderer;
 
+import asteroids3d.gamestate.GameState;
 import asteroids3d.gamestate.objects.ProgramState;
 
 public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
     private static RajawaliVRExampleRenderer currentRenderer;
+    private static BoundingBox boundingBox;
+
     private ProgramState currentState;
     private SquareTerrain mTerrain;
     private Sphere mLookatSphere;
 
-    public int isTriggered = 0;
+    private GameState state;
 
-    private Quaternion orientation;
-    private boolean move;
+    public int isTriggered = 0;
+    private boolean isTabbed;
 
     private Vector3 cameraPosition = new Vector3(0, 0, 1);
 
@@ -48,6 +53,11 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         // Set frame rate.
         setFrameRate(30);
 
+        // Setup bounding box.
+        boundingBox = new BoundingBox(new Cube(1000, false).getGeometry());
+        boundingBox.setMin(new Vector3(-100, 0, -100));
+        boundingBox.setMax(new Vector3(100, 300, 100));
+
         // Set up lights.
         DirectionalLight light = new DirectionalLight(0.2f, -1f, 0f);
         light.setPower(.7f);
@@ -57,11 +67,17 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         light.setPower(1f);
         getCurrentScene().addLight(light);
 
+        // Set cropping plane.
         getCurrentCamera().setFarPlane(1000);
 
-        getCurrentScene().setBackgroundColor(0xdddddd);
+        // Background.
+        getCurrentScene().setBackgroundColor(0x000000);
 
+        // Create the surrounding.
         createTerrain();
+
+        // Instantiate game state to kick off the game.
+        state = new GameState(getCurrentScene());
 
         // Create sample asteroid
         Material material = new Material();
@@ -177,9 +193,14 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
     @Override
     public void onRender(long elapsedTime, double deltaTime) {
         handleCameraMovement(10);
+        // Update position of camera.
         getCurrentCamera().setPosition(cameraPosition);
-        // Update position of sphere
+
+        // Update game state.
+        state.updateGameState(deltaTime, elapsedTime, false); // TODO pass in touch.
+
         super.onRender(elapsedTime, deltaTime);
+
         boolean isLookingAt = isLookingAtObject(mLookatSphere);
         if (isLookingAt) {
             if (isTriggered < 100) {
@@ -194,13 +215,13 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         isTriggered = (isTriggered + 1) % Integer.MAX_VALUE;
     }
 
-    public void incrementCameraPosition() {
+    public void handleTab() {
         // Extract orientation looked at.
-        move = true;
+        isTabbed = true;
     }
 
     public void handleCameraMovement(double units) {
-        if (move) {
+        if (isTabbed) {
             String output = "Old position:" + getCurrentCamera().getPosition().toString() + "\t";
             final Vector3 movement = WorldParameters.FORWARD_AXIS.clone();
             movement.rotateBy(getCurrentCamera().getOrientation()).multiply(units);
@@ -213,11 +234,15 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
             mLookatSphere.setPosition(spherePos);
             output += "New position: " + movement;
             RajLog.i(output);
-            move = false;
+            isTabbed = false;
         }
     }
 
     public static RajawaliVRExampleRenderer getCurrentRenderer() {
         return currentRenderer;
+    }
+
+    public static BoundingBox getBoundingBox() {
+        return boundingBox;
     }
 }

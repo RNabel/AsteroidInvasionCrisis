@@ -3,22 +3,19 @@ package asteroids3d.gamestate.objects;
 import java.util.Random;
 import java.util.TreeSet;
 
-/**
- * Author rn30.
- */
 // Holds the state of the level.
 public class Level {
-    private int levelLength = 900; // In frames.
+    private long levelLength = 30; // In wall-clock time in ns.
     public static final int rocketsToStart = 20;
-    private int totalRocks;
+    private int totalAsteroids;
     private Random random;
-    private TreeSet<Long> startTimes;
+    private TreeSet<Double> startTimes;
     private int level;
 
 
     public Level(int levelNum) {
         this.level = levelNum;
-        this.totalRocks = calculateRockNumber();
+        this.totalAsteroids = calculateAsteroidNumber();
         this.random = new Random();
 
         // Create wave start times.
@@ -27,16 +24,16 @@ public class Level {
     }
 
     // Helper methods.
-    private int calculateRockNumber() {
+    private int calculateAsteroidNumber() {
         return (int) Math.round(Math.pow(10d, (double)this.level * 0.2 + 1d));
     }
 
     public int calculateRocketNumber () {
-        return 15 + (int)Math.round(1.3 * level);
+        return 1 + (int)Math.round(1.3 * level);
     }
 
     // Creates normally distributed value in [-totalInterval, 0]. Used to create relative timings for rock waves
-    private long nextGaussian(int totalInterval) {
+    private double nextGaussian(double totalInterval) {
         double standardDeviation = (totalInterval) / 2.0;
         double gaussian;
 
@@ -48,18 +45,18 @@ public class Level {
     }
 
     private void createRockStartingTimes() {
-        for (int i = 0; i < totalRocks; i++) {
-            long frameNumber = nextGaussian(levelLength);
-            startTimes.add(frameNumber);
+        for (int i = 0; i < totalAsteroids; i++) {
+            double timeStamp = nextGaussian(levelLength);
+            startTimes.add(timeStamp);
         }
     }
 
-    public TreeSet<Long> getStartTimes() {
+    public TreeSet<Double> getStartTimes() {
         return startTimes;
     }
 
-    public boolean checkIfEndOfLevel(long currentFrame) {
-        return currentFrame > this.levelLength;
+    public boolean checkIfEndOfLevel(double time) {
+        return time > this.levelLength;
     }
 
     public int getLevel() {

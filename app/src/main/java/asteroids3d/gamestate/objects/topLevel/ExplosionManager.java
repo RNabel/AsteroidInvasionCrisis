@@ -28,7 +28,7 @@ public class ExplosionManager extends Manager {
     }
 
     @Override
-    public void update(Long currentFrame) {
+    public void update(double deltaTime, long totalTime) {
         Iterator<Explosion> it = explosions.iterator();
         while (it.hasNext()) {
             Explosion expl = it.next();

@@ -23,7 +23,7 @@ public class BackgroundManager extends Manager {
     }
 
     @Override
-    public void update(Long currentFrame) {
+    public void update(double currentFrame, long totalTime) {
         // Any code relating to updates of the background.
     }
 }

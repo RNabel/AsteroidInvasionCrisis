@@ -7,9 +7,6 @@ import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.google.vrtoolkit.cardboard.CardboardActivity;
-import com.google.vrtoolkit.cardboard.CardboardView;
-
 public class RajawaliVRExampleActivity extends RajawaliVRActivity {
     private RajawaliVRExampleRenderer mRenderer;
 
@@ -39,7 +36,7 @@ public class RajawaliVRExampleActivity extends RajawaliVRActivity {
     @Override
     public void onCardboardTrigger() {
         mRenderer.isTriggered = 0;
-        mRenderer.incrementCameraPosition();
+        mRenderer.handleTab();
         RajLog.i("onCardboardTrigger");
     }
 }

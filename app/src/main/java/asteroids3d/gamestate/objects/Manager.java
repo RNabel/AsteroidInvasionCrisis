@@ -19,15 +19,13 @@ public abstract class Manager {
 //    }
     private RajawaliScene currentScene;
 
-    private Cube boundingBox;
-
     public GameState getGameState() { return GameState.getState();  }
 
     public BoundingBox getBoundingBox() {
-        return boundingBox.getGeometry().getBoundingBox();
+        return RajawaliVRExampleRenderer.getBoundingBox();
     }
 
-    public abstract void update(Long frameNumber);
+    public abstract void update(double deltaTime, long totalTime);
 
     public Manager(RajawaliScene currentScene) {
         this.currentScene = currentScene;

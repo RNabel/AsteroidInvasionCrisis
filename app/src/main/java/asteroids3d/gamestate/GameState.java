@@ -2,16 +2,14 @@ package asteroids3d.gamestate;
 
 import org.rajawali3d.scene.RajawaliScene;
 
-import asteroids3d.RajawaliVRExampleRenderer;
+import java.util.TreeSet;
+
 import asteroids3d.gamestate.objects.Asteroids.AsteroidManager;
 import asteroids3d.gamestate.objects.Level;
 import asteroids3d.gamestate.objects.ProgramState;
 import asteroids3d.gamestate.objects.background.BackgroundManager;
 import asteroids3d.gamestate.objects.topLevel.TopLevelManager;
 
-/**
- * Author rn30.
- */
 // The main game state of the game, is used by the rendering engine,
 public class GameState {
     private static GameState state = null;
@@ -28,10 +26,22 @@ public class GameState {
     public GameState(RajawaliScene currentState) { // TODO fix this.
         GameState.state = this;
         this.currentScene = currentState;
+
+        // Create current Level.
+        currentLevel = new Level(0);
+
+        // Instantiate AsteroidManager.
+        TreeSet<Double> times = currentLevel.getStartTimes();
+        asteroidManager = new AsteroidManager(times, currentScene);
     }
 
-    // Method called before rendering every frame.
-    public void updateGameState(double time, boolean mouseClicked) {
+    /**
+     * Method called before rendering every frame.
+     * @param deltaTime - delta time, time elapsed from last rendered frame.
+     * @param isTabbed - Whether the trigger was used in last frame cycle.
+     */
+    public void updateGameState(double deltaTime, long totalTime, boolean isTabbed) {
+        asteroidManager.update(deltaTime, totalTime);
         // Transition between game states. TODO at later point.
 //        if (mouseClicked) {
 //            EntryPoint entryPoint = (EntryPoint) getApplet();
