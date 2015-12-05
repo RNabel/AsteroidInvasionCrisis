@@ -5,10 +5,14 @@ import android.graphics.Color;
 import org.rajawali3d.Object3D;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
+import org.rajawali3d.materials.textures.ATexture;
+import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Sphere;
 
+import asteroids3d.R;
+import asteroids3d.gamestate.objects.Asteroids.Asteroid;
 import asteroids3d.gamestate.objects.Manager;
 import asteroids3d.gamestate.objects.MovingObject;
 
@@ -32,19 +36,15 @@ public class Rocket extends MovingObject {
 
         // Instantiate 3D object.
         shape = new Sphere(radius, segmentsW, segmentsH);
-        Material rocketMaterial = new Material();
-        rocketMaterial.enableLighting(true);
-        rocketMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
-        rocketMaterial.setColor(0);
+        Material rocketMaterial = Asteroid.asteroidMaterial;
         shape.setMaterial(rocketMaterial);
         shape.setColor(Color.RED);
-
+        shape.setPosition(location);
         getManager().getCurrentScene().addChild(shape);
     }
 
     @Override
     public Object3D getShape() {
-        Vector3 loc = this.getLocation();
         return this.shape;
     }
 

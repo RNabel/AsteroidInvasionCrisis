@@ -27,7 +27,7 @@ public class RocketManager extends Manager {
     List<Rocket> rockets = new ArrayList<>();
 
     @Override
-    public void update(double currentFrame, long totalTime) {
+    public void update(double deltaTime, long totalTime) {
         // Update all rockets.
         Iterator<Rocket> it = rockets.iterator();
 
@@ -41,12 +41,13 @@ public class RocketManager extends Manager {
                 removeRocket = true;
 
                 // Detect whether either stationary or at target.
-            } else if (Vector3.distanceTo(rocket.getOrigin(), rocket.getLocation())
-                       > rocket.getDistance()) {
-
-                this.createExplosion(rocket);
-                removeRocket = true;
             }
+//            else if (Vector3.distanceTo(rocket.getOrigin(), rocket.getLocation())
+//                       > rocket.getDistance()) {
+//
+//                this.createExplosion(rocket);
+//                removeRocket = true;
+//            }
 
             if (removeRocket) {
 

@@ -20,7 +20,7 @@ import asteroids3d.util.IntervalRandom;
  * Author rn30.
  */
 public class Asteroid extends MovingObject {
-    private static Material asteroidMaterial;
+    public static Material asteroidMaterial;
     static {
         asteroidMaterial = new Material();
         asteroidMaterial.enableLighting(true);
@@ -55,7 +55,6 @@ public class Asteroid extends MovingObject {
         super(manager, location, acceleration, velocity);
         this.radius = radius;
         this.shape = new Sphere(radius, SEGMENTS_W, SEGMENTS_H);
-        shape = new Sphere(1, 12, 12);
         shape.setMaterial(asteroidMaterial);
         shape.setColor(Color.YELLOW);
         shape.setPosition(location);

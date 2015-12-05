@@ -33,6 +33,8 @@ public class GameState {
         // Instantiate AsteroidManager.
         TreeSet<Double> times = currentLevel.getStartTimes();
         asteroidManager = new AsteroidManager(times, currentScene);
+
+        topLevelManager = new TopLevelManager(100, currentScene);
     }
 
     /**
@@ -42,6 +44,7 @@ public class GameState {
      */
     public void updateGameState(double deltaTime, long totalTime, boolean isTabbed) {
         asteroidManager.update(deltaTime, totalTime);
+        topLevelManager.update(deltaTime, totalTime);
         // Transition between game states. TODO at later point.
 //        if (mouseClicked) {
 //            EntryPoint entryPoint = (EntryPoint) getApplet();

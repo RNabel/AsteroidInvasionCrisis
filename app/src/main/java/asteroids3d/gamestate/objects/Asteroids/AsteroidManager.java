@@ -39,7 +39,7 @@ public class AsteroidManager extends Manager {
                 new Vector3(0, -0.01, 0),   // Acceleration.
 //                createRandomVelocity(true, 2),  // Velocity.
                 new Vector3(0, -0.01, 0),   // Velocity.
-                100); // Radius.
+                10); // Radius.
 
         // 5% chance that rock splits.
         boolean splits = random.nextDouble() < 0.05;

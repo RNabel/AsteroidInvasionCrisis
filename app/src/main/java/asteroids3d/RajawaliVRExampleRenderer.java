@@ -1,25 +1,27 @@
 package asteroids3d;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 
-import org.rajawali3d.Object3D;
 import org.rajawali3d.WorldParameters;
 import org.rajawali3d.bounds.BoundingBox;
 import org.rajawali3d.lights.DirectionalLight;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.materials.textures.ATexture.TextureException;
-import org.rajawali3d.materials.textures.NormalMapTexture;
 import org.rajawali3d.materials.textures.Texture;
+import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Cube;
 import org.rajawali3d.primitives.Plane;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.terrain.SquareTerrain;
-import org.rajawali3d.terrain.TerrainGenerator;
 import org.rajawali3d.util.RajLog;
 import org.rajawali3d.vr.renderer.RajawaliVRRenderer;
 
@@ -31,13 +33,15 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
     private static BoundingBox boundingBox;
 
     private ProgramState currentState;
-    private SquareTerrain mTerrain;
+    private Plane mPlane;
+    private Plane crosshairPlane;
     private Sphere mLookatSphere;
 
     private GameState state;
 
     public int isTriggered = 0;
     private boolean isTabbed;
+    private boolean fireRocket;
 
     private Vector3 cameraPosition = new Vector3(0, 5, 0);
 
@@ -74,7 +78,7 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         getCurrentScene().setBackgroundColor(0x000000);
 
         // Create the surrounding.
-        createTerrain();
+        createFloor();
 
         // Instantiate game state to kick off the game.
         state = new GameState(getCurrentScene());
@@ -93,101 +97,59 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
             RajLog.i("DEBUG TEXTURE ERROR");
         }
 
-//        Material sphereMaterial = new Material();
-//        sphereMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
-//        sphereMaterial.enableLighting(true);
-//        sphereMaterial.setColorInfluence(0);
-//        Texture asteroidTexture = new Texture("Sphere texture", R.drawable.earthtruecolor_nasa_big);
-//
-//        try {
-//            sphereMaterial.addTexture(asteroidTexture);
-//            RajLog.i("Successfully set texture.");
-//        } catch (TextureException e) {
-//            e.printStackTrace();
-//            RajLog.i("Terrible error occurred when setting texture");
-//        }
         mLookatSphere = new Sphere(1, 12, 12);
         mLookatSphere.setMaterial(material);
         mLookatSphere.setColor(Color.YELLOW);
         mLookatSphere.setPosition(0, 0, 6);
         getCurrentScene().addChild(mLookatSphere);
 
+        // Set up crosshair.
+        crosshairPlane = new Plane(2, 2, 12, 12);
+        Material crosshairMat = new Material();
+        crosshairMat.enableLighting(true);
+        crosshairMat.setDiffuseMethod(new DiffuseMethod.Lambert());
+        crosshairMat.setColorInfluence(0);
+        Bitmap crosshairBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.crosshair);
+        try {
+            crosshairMat.addTexture(new Texture("crosshair", crosshairBitmap));
+        } catch (TextureException e) {
+            e.printStackTrace();
+        }
+        crosshairPlane.setMaterial(crosshairMat);
+        crosshairPlane.setTransparent(true);
+        getCurrentScene().addChild(crosshairPlane);
+
         super.initScene();
     }
 
-    public void createTerrain() {
+    public void createFloor() {
         //
         // -- Load a bitmap that represents the terrain. Its color values will
         //    be used to generate heights.
         //
-        Bitmap bmp = BitmapFactory.decodeResource(mContext.getResources(),
-                R.drawable.grid);
-        Plane mPlane = new Plane();
+        mPlane = new Plane(500, 500, 100, 100);
+        mPlane.setPosition(0, 0, 0);
+        mPlane.setDoubleSided(true);
         Material material1 = new Material();
-        material1.setColorInfluence(1);
-        mPlane.setMaterial(material1);
-        mPlane.setColor(0xffffff00);
-//        mPlane.setDrawingMode(GLES20.GL_LINE_LOOP);
-        getCurrentScene().addChild(mPlane);
+        material1.setColorInfluence(0);
+        Bitmap picTexture = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.squares_big);
         try {
-            getCurrentScene().setSkybox(R.drawable.right, R.drawable.left, R.drawable.top, R.drawable.bottom, R.drawable.front, R.drawable.back);
-            SquareTerrain.Parameters terrainParams = SquareTerrain.createParameters(bmp);
-            // -- set terrain scale
-            terrainParams.setScale(4f, 54f, 4f);
-            // -- the number of plane subdivisions
-            terrainParams.setDivisions(128);
-            // -- the number of times the textures should be repeated
-            terrainParams.setTextureMult(4);
-//            terrainParams.setTextureMult(1);
-            //
-            // -- Terrain colors can be set by manually specifying base, middle and
-            //    top colors.
-            //
-            terrainParams.setBasecolor(Color.argb(0, 3, 54, 62));
-            terrainParams.setMiddleColor(Color.argb(0, 18, 158, 180));
-            terrainParams.setUpColor(Color.argb(0, 0, 0, 0));
-            //
-            // -- However, for this example we'll use a bitmap
-            //
-            terrainParams.setColorMapBitmap(bmp);
-            //
-            // -- create the terrain
-            //
-            mTerrain = TerrainGenerator.createSquareTerrainFromBitmap(terrainParams, true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //
-        // -- The bitmap won't be used anymore, so get rid of it.
-        //
-        bmp.recycle();
-
-        //
-        // -- A normal map material will give the terrain a bit more detail.
-        //
-        Material material = new Material();
-        material.enableLighting(true);
-        material.useVertexColors(true);
-        material.setDiffuseMethod(new DiffuseMethod.Lambert());
-        try {
-            Texture groundTexture = new Texture("ground", R.drawable.grid);
-            groundTexture.setInfluence(.5f);
-            material.addTexture(groundTexture);
-            material.addTexture(new NormalMapTexture("groundNormalMap", R.drawable.groundnor));
-            material.setColorInfluence(0);
+            material1.addTexture(new Texture("squares", picTexture));
         } catch (TextureException e) {
             e.printStackTrace();
         }
+        mPlane.setMaterial(material1);
 
-        //
-        // -- Blend the texture with the vertex colors
-        //
-        material.setColorInfluence(.5f);
-        mTerrain.setY(-100);
-        mTerrain.setMaterial(material);
-
-        getCurrentScene().addChild(mTerrain);
+        // Set orientation of the plane.
+        Quaternion q = new Quaternion();
+        q.fromAngleAxis(Vector3.Axis.X, 90);
+        mPlane.setOrientation(q);
+        getCurrentScene().addChild(mPlane);
+        try {
+            getCurrentScene().setSkybox(R.drawable.right, R.drawable.left, R.drawable.top, R.drawable.bottom, R.drawable.front, R.drawable.back);
+        } catch (TextureException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -195,7 +157,8 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         handleCameraMovement(10);
         // Update position of camera.
         getCurrentCamera().setPosition(cameraPosition);
-
+        // Show HUD.
+        showHudComponents();
         // Update game state.
         state.updateGameState(deltaTime, elapsedTime, false); // TODO pass in touch.
 
@@ -215,9 +178,35 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         isTriggered = (isTriggered + 1) % Integer.MAX_VALUE;
     }
 
+    /**
+     * Displays different heads-up display components. These are rendered on different planes which are positioned depending on current camera position and orientation.
+     */
+    private void showHudComponents() {
+        Quaternion currentOrientation = getCurrentCamera().getOrientation();
+        Vector3 currentPosition = getCurrentCamera().getPosition();
+
+        // Show crosshair.
+        crosshairPlane.setOrientation(currentOrientation);
+        crosshairPlane.setPosition(currentPosition);
+        getCurrentScene().removeChild(crosshairPlane);
+        getCurrentScene().addChild(crosshairPlane);
+
+        final Vector3 movement = WorldParameters.FORWARD_AXIS.clone();
+        movement.rotateBy(currentOrientation).multiply(3);
+        movement.inverse();
+        crosshairPlane.getPosition().add(movement);
+
+        // Show points.
+        // TODO
+
+        // Show remaining rockets.
+        // TODO.
+    }
+
     public void handleTab() {
         // Extract orientation looked at.
-        isTabbed = true;
+        isTabbed = false;
+        fireRocket = true;
     }
 
     public void handleCameraMovement(double units) {
@@ -226,16 +215,21 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
             final Vector3 movement = WorldParameters.FORWARD_AXIS.clone();
             movement.rotateBy(getCurrentCamera().getOrientation()).multiply(units);
             movement.inverse();
-            movement.z = 0;
+            movement.y = 0;
             cameraPosition = cameraPosition.clone().add(movement);
 
-            // set globe position
+            // Set globe position.
             Vector3 spherePos = cameraPosition.clone();
             spherePos.add(movement);
             mLookatSphere.setPosition(spherePos);
             output += "New position: " + movement;
             RajLog.i(output);
             isTabbed = false;
+        } else if (fireRocket) {
+            Quaternion currentOrientation = getCurrentCamera().getOrientation().clone();
+            Vector3 currentPosition = getCurrentCamera().getPosition().clone();
+            this.state.getTopLevelManager().getrManager().rocketLaunched(currentOrientation, currentPosition);
+            fireRocket = false;
         }
     }
 
@@ -245,5 +239,31 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
 
     public static BoundingBox getBoundingBox() {
         return boundingBox;
+    }
+
+    public Bitmap drawTextToBitmap(Context gContext, String gText) {
+        Resources resources = gContext.getResources();
+        float scale = resources.getDisplayMetrics().density;
+        Bitmap bitmap =Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(bitmap);
+        // new antialised Paint
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        // text color - #3D3D3D
+        paint.setColor(Color.rgb(61, 61, 61));
+        // text size in pixels
+        paint.setTextSize(3);
+
+        // draw text to the Canvas center
+        Rect bounds = new Rect();
+        paint.setTextAlign(Paint.Align.CENTER);
+
+        paint.getTextBounds(gText, 0, gText.length(), bounds);
+        int x = (bitmap.getWidth() - bounds.width())/2;
+        int y = (bitmap.getHeight() + bounds.height())/2;
+
+        canvas.drawText(gText, x * scale, y * scale, paint);
+
+        return bitmap;
     }
 }
