@@ -21,7 +21,7 @@ import asteroids3d.gamestate.objects.MovingObject;
  */
 public class Rocket extends MovingObject {
     private double distance;
-    private int radius;
+    private int radius = 1;
     private int segmentsH = 12;
     private int segmentsW = 12;
     private Vector3 origin;
@@ -40,6 +40,7 @@ public class Rocket extends MovingObject {
         shape.setMaterial(rocketMaterial);
         shape.setColor(Color.RED);
         shape.setPosition(location);
+        shape.setDoubleSided(true);
         getManager().getCurrentScene().addChild(shape);
     }
 

@@ -2,6 +2,8 @@ package asteroids3d.gamestate.objects.Asteroids;
 
 import android.graphics.Color;
 
+import net.sf.javaml.core.kdtree.KDTree;
+
 import org.rajawali3d.Object3D;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
@@ -16,11 +18,9 @@ import asteroids3d.gamestate.objects.Manager;
 import asteroids3d.gamestate.objects.MovingObject;
 import asteroids3d.util.IntervalRandom;
 
-/**
- * Author rn30.
- */
 public class Asteroid extends MovingObject {
     public static Material asteroidMaterial;
+
     static {
         asteroidMaterial = new Material();
         asteroidMaterial.enableLighting(true);
@@ -28,10 +28,10 @@ public class Asteroid extends MovingObject {
         asteroidMaterial.setColor(0);
 
         Texture earthTexture = new Texture("Asteroid", R.drawable.asteroid);
-        try{
+        try {
             asteroidMaterial.addTexture(earthTexture);
 
-        } catch (ATexture.TextureException error){
+        } catch (ATexture.TextureException error) {
             RajLog.i("DEBUG TEXTURE ERROR");
         }
 
@@ -61,6 +61,9 @@ public class Asteroid extends MovingObject {
 
         // Add the asteroid to the
         getManager().getCurrentScene().addChild(shape);
+
+        // Add to location map.
+        updateLocationTree(null, location);
     }
 
     // To be called after location is updated.
@@ -78,16 +81,25 @@ public class Asteroid extends MovingObject {
     }
 
     @Override
-    public void handleCollision(Object collidingObject) {  }
+    public void handleCollision(Object collidingObject) {
+    }
 
     @Override
     public boolean updatePosition() {
+        Vector3 oldLocation = getLocation().clone();
         if (splits && getLocation().y > altitude) {
             // Split the rock.
             // TODO
         }
-
-        return super.updatePosition();
+        boolean onScreen = super.updatePosition();
+        if (onScreen) {
+            // Update map.
+            updateLocationTree(oldLocation, getLocation().clone());
+        } else {
+            // Remove from map.
+            deleteFromLocationTree(oldLocation);
+        }
+        return onScreen;
     }
 
     @Override
@@ -99,6 +111,28 @@ public class Asteroid extends MovingObject {
     public Vector3 calculateCurrentAcceleration(Vector3 currentAcceleration, double time) {
         return currentAcceleration;
     }
+
+    private void updateLocationTree(Vector3 old, Vector3 newV) {
+        try {
+            deleteFromLocationTree(old);
+        } catch (Exception e) {
+            // If key not already inserted.
+        }
+        insertInLocationTree(newV);
+    }
+
+    private void insertInLocationTree(Vector3 location) {
+        double[] newArr = vectorToArray(location);
+        KDTree tree = ((AsteroidManager) getManager()).getAsteroidLocationMap();
+        tree.insert(newArr, this);
+    }
+
+    private void deleteFromLocationTree(Vector3 location) {
+        double[] loc = vectorToArray(location);
+        KDTree tree = ((AsteroidManager) getManager()).getAsteroidLocationMap();
+        tree.delete(loc);
+    }
+
 
     public void setSplits(boolean splits) {
         // Get the altitude at which to split.

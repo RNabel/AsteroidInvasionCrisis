@@ -1,5 +1,7 @@
 package asteroids3d.gamestate.objects.topLevel;
 
+import net.sf.javaml.core.kdtree.KDTree;
+
 import org.rajawali3d.WorldParameters;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
@@ -8,6 +10,7 @@ import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.scene.RajawaliScene;
 
 import asteroids3d.gamestate.objects.Manager;
+import asteroids3d.gamestate.objects.StationaryObject;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -31,6 +34,9 @@ public class RocketManager extends Manager {
         // Update all rockets.
         Iterator<Rocket> it = rockets.iterator();
 
+        // Get the tree map containing all asteroids.
+        KDTree tree = getGameState().getAsteroidManager().getAsteroidLocationMap();
+
         while (it.hasNext()) {
             Rocket rocket = it.next();
             boolean isOnScreen = rocket.updatePosition();
@@ -39,18 +45,13 @@ public class RocketManager extends Manager {
             boolean removeRocket = false;
             if (!isOnScreen) {
                 removeRocket = true;
-
-                // Detect whether either stationary or at target.
             }
-//            else if (Vector3.distanceTo(rocket.getOrigin(), rocket.getLocation())
-//                       > rocket.getDistance()) {
-//
-//                this.createExplosion(rocket);
-//                removeRocket = true;
-//            }
+
+            // Detect whether it reached asteroid.
+
 
             if (removeRocket) {
-
+                getCurrentScene().removeChild(rocket.getShape());
                 it.remove();
             }
         }
@@ -82,5 +83,24 @@ public class RocketManager extends Manager {
     // Getters and Setters.
     public List<Rocket> getRockets() {
         return rockets;
+    }
+
+    // --- Helpers. ---
+
+    /**
+     * Calculates the upper and lower bounds of an exploding rocket.
+     * @param location
+     * @return two 3-element double arrays, [0] upper limit, [1] lower limit.
+     */
+    private double[][] getLimits(Vector3 location) {
+        double[] loc = StationaryObject.vectorToArray(location);
+        double[][] output = new double[2][];
+        int explReach = ExplosionManager.explosionSize;
+        // Set max.
+        output[0] = new double[]{location.x + explReach, location.y + explReach, location.z + explReach};
+        // Set min.
+        output[1] = new double[]{location.x - explReach, location.y - explReach, location.z - explReach};
+
+        return output;
     }
 }

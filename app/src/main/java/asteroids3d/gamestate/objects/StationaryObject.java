@@ -44,4 +44,8 @@ public abstract class StationaryObject {
     public Manager getManager() {
         return manager;
     }
+
+    public static double[] vectorToArray(Vector3 inputVector) {
+        return new double[] {inputVector.x, inputVector.y, inputVector.z};
+    }
 }

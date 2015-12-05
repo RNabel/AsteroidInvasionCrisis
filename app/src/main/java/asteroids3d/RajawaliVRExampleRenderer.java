@@ -205,7 +205,7 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
 
     public void handleTab() {
         // Extract orientation looked at.
-        isTabbed = false;
+        isTabbed = true;
         fireRocket = true;
     }
 
@@ -219,15 +219,16 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
             cameraPosition = cameraPosition.clone().add(movement);
 
             // Set globe position.
-            Vector3 spherePos = cameraPosition.clone();
-            spherePos.add(movement);
-            mLookatSphere.setPosition(spherePos);
-            output += "New position: " + movement;
-            RajLog.i(output);
+//            Vector3 spherePos = cameraPosition.clone();
+//            spherePos.add(movement);
+//            mLookatSphere.setPosition(spherePos);
+//            output += "New position: " + movement;
+//            RajLog.i(output);
             isTabbed = false;
-        } else if (fireRocket) {
+        }
+        if (fireRocket) {
             Quaternion currentOrientation = getCurrentCamera().getOrientation().clone();
-            Vector3 currentPosition = getCurrentCamera().getPosition().clone();
+            Vector3 currentPosition = cameraPosition.clone();
             this.state.getTopLevelManager().getrManager().rocketLaunched(currentOrientation, currentPosition);
             fireRocket = false;
         }
