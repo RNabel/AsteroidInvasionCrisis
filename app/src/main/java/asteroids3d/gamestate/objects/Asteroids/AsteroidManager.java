@@ -1,6 +1,6 @@
 package asteroids3d.gamestate.objects.Asteroids;
 
-import net.sf.javaml.core.kdtree.KDTree;
+import edu.wlu.cs.levy.CG.KDTree;
 
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
@@ -15,6 +15,9 @@ import java.util.TreeSet;
 import asteroids3d.gamestate.objects.Manager;
 import asteroids3d.gamestate.objects.ProgramState;
 import asteroids3d.util.IntervalRandom;
+import edu.wlu.cs.levy.CG.KeyDuplicateException;
+import edu.wlu.cs.levy.CG.KeyMissingException;
+import edu.wlu.cs.levy.CG.KeySizeException;
 
 public class AsteroidManager extends Manager {
     private List<Asteroid> asteroids;
@@ -43,7 +46,7 @@ public class AsteroidManager extends Manager {
                 new Vector3(xPos, 100, zPos), // Position.
                 new Vector3(0, -0.01, 0),   // Acceleration.
 //                createRandomVelocity(true, 2),  // Velocity.
-                new Vector3(0, -0.01, 0),   // Velocity.
+                new Vector3(0, -0.03, 0),   // Velocity.
                 3); // Radius.
 
         // 5% chance that rock splits.
@@ -52,6 +55,9 @@ public class AsteroidManager extends Manager {
 
         // Add Asteroid to RajawaliScene.
         asteroids.add(newAsteroid);
+
+        // Add asteroid to location map.
+        insertInLocationTree(newAsteroid.getLocation(), newAsteroid);
     }
 
     @Override
@@ -78,7 +84,11 @@ public class AsteroidManager extends Manager {
 
         while (it.hasNext()) {
             Asteroid asteroid = it.next();
+            Vector3 oldLocation = asteroid.getLocation().clone();
             boolean isOnScreen = asteroid.updatePosition();
+
+            // Update location in KDTree.
+            updateLocationTree(oldLocation, asteroid.getLocation().clone(), asteroid);
 
             // Check if asteroids are on screen.
             if (!isOnScreen) {
@@ -102,10 +112,13 @@ public class AsteroidManager extends Manager {
         return asteroids;
     }
 
-    public void deleteRock(Asteroid asteroid) {
-        // TODO make sure asteroid is removed from scene element.
+    public void deleteAsteroid(Asteroid asteroid) {
+        // TODO make sure asteroid is removed from scene element and location tree.
+        deleteFromLocationTree(asteroid.getLocation());
         getCurrentScene().removeChild(asteroid.getShape());
+        RajLog.i("Before asteroid delete:" + asteroids.size());
         this.asteroids.remove(asteroid);
+        RajLog.i("After asteroid delete:" + asteroids.size());
     }
 
     // Expects int to indicate whether to go right (0), left (1), or anywhere.
@@ -133,4 +146,42 @@ public class AsteroidManager extends Manager {
     public KDTree getAsteroidLocationMap() {
         return asteroidLocationMap;
     }
+
+    protected void updateLocationTree(Vector3 old, Vector3 newV, Asteroid asteroid) {
+        try {
+            deleteFromLocationTree(old);
+        } catch (Exception e) {
+            // If key not already inserted.
+        }
+        insertInLocationTree(newV, asteroid);
+    }
+
+    protected void insertInLocationTree(Vector3 location, Asteroid asteroid) {
+        double[] newArr = vectorToArray(location);
+        KDTree tree = getAsteroidLocationMap();
+        try {
+            tree.insert(newArr, asteroid);
+        } catch (KeySizeException | KeyDuplicateException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void deleteFromLocationTree(Vector3 location) {
+        double[] loc = vectorToArray(location);
+        KDTree tree = getAsteroidLocationMap();
+        Asteroid ast = null;
+        try {
+            int size = tree.size();
+            tree.delete(loc);
+            assert tree.size() == size - 1;
+        } catch (KeySizeException | KeyMissingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static double[] vectorToArray(Vector3 inputVector) {
+        return new double[]{inputVector.x, inputVector.y, inputVector.z};
+    }
+
+
 }

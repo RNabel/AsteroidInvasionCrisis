@@ -1,16 +1,17 @@
 package asteroids3d.gamestate.objects.topLevel;
 
-import net.sf.javaml.core.kdtree.KDTree;
 
 import org.rajawali3d.WorldParameters;
-import org.rajawali3d.materials.Material;
-import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.scene.RajawaliScene;
+import org.rajawali3d.util.RajLog;
 
+import asteroids3d.gamestate.objects.Asteroids.Asteroid;
 import asteroids3d.gamestate.objects.Manager;
 import asteroids3d.gamestate.objects.StationaryObject;
+import edu.wlu.cs.levy.CG.KDTree;
+import edu.wlu.cs.levy.CG.KeySizeException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -48,13 +49,33 @@ public class RocketManager extends Manager {
             }
 
             // Detect whether it reached asteroid.
+            double[][] limits = getLimits(rocket.getLocation());
+            List<Object> objects = null;
+            try {
+                objects = tree.range(limits[1], limits[0]);
+            } catch (KeySizeException e) {
+                e.printStackTrace();
+            }
 
+            if (objects.size() > 0) {
+                removeRocket = true;
+
+                // Remove the asteroids in the explosion radius.
+                for (Object astObj :
+                        objects) {
+                    getGameState().getAsteroidManager().deleteAsteroid((Asteroid) astObj);
+                }
+
+                // Create Explosion.
+                createExplosion(rocket);
+            }
 
             if (removeRocket) {
                 getCurrentScene().removeChild(rocket.getShape());
                 it.remove();
             }
         }
+
     }
 
     // Launch an unguided rocket.
@@ -89,6 +110,7 @@ public class RocketManager extends Manager {
 
     /**
      * Calculates the upper and lower bounds of an exploding rocket.
+     *
      * @param location
      * @return two 3-element double arrays, [0] upper limit, [1] lower limit.
      */

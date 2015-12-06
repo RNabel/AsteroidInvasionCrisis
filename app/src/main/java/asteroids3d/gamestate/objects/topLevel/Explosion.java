@@ -1,15 +1,22 @@
 package asteroids3d.gamestate.objects.topLevel;
 
+import android.graphics.Color;
+
 import org.rajawali3d.Object3D;
+import org.rajawali3d.materials.Material;
+import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Sphere;
+import org.rajawali3d.util.RajLog;
 
+import asteroids3d.gamestate.objects.Asteroids.Asteroid;
 import asteroids3d.gamestate.objects.Manager;
 import asteroids3d.gamestate.objects.StationaryObject;
 
 public class Explosion extends StationaryObject {
-    private int radius = 15;
+    private int radius = 100;
     private static final int limit = 1;
+    private double scale = 1;
 
     private Object3D explosion;
 
@@ -19,19 +26,28 @@ public class Explosion extends StationaryObject {
 
         // Create the shape. TODO finish add material.
         explosion = new Sphere(radius, 12, 12); // Make non magical.
-
+        Material material = Asteroid.asteroidMaterial;;
+//        material.enableLighting(true);
+//        material.setColorInfluence(1f);
+//        material.setDiffuseMethod(new DiffuseMethod.Lambert());
+//        material.setColor(Color.MAGENTA);
+        explosion.setMaterial(material);
+        explosion.setColor(Color.MAGENTA);
+        explosion.setPosition(location);
         // Add explosion to scene.
-        manager.getCurrentScene().addChild(this.getShape());
+        getManager().getCurrentScene().addChild(explosion);
+        RajLog.i("Created new explosion at:" + getLocation());
     }
 
     public boolean updateSize() {
-        radius -= 2;
-        return radius < limit;
+        getShape().setScale(scale);
+        scale -= 0.1;
+        return scale <= 0;
     }
 
     @Override
     public Object3D getShape() {
-        return ((ExplosionManager)this.getManager()).getExplosionShape();
+        return explosion;
     }
 
     @Override

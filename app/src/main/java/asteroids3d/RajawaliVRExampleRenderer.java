@@ -21,7 +21,6 @@ import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Cube;
 import org.rajawali3d.primitives.Plane;
 import org.rajawali3d.primitives.Sphere;
-import org.rajawali3d.terrain.SquareTerrain;
 import org.rajawali3d.util.RajLog;
 import org.rajawali3d.vr.renderer.RajawaliVRRenderer;
 
@@ -40,13 +39,20 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
     private GameState state;
 
     public int isTriggered = 0;
-    private boolean isTabbed;
+    public boolean moveForward;
     private boolean fireRocket;
 
     private Vector3 cameraPosition = new Vector3(0, 5, 0);
 
     public RajawaliVRExampleRenderer(Context context) {
         super(context);
+    }
+
+    static {
+        // Setup bounding box.
+        boundingBox = new BoundingBox(new Cube(1000, false).getGeometry());
+        boundingBox.setMin(new Vector3(-200, 0, -200));
+        boundingBox.setMax(new Vector3(200, 300, 200));
     }
 
     @Override
@@ -56,11 +62,6 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
 
         // Set frame rate.
         setFrameRate(30);
-
-        // Setup bounding box.
-        boundingBox = new BoundingBox(new Cube(1000, false).getGeometry());
-        boundingBox.setMin(new Vector3(-100, 0, -100));
-        boundingBox.setMax(new Vector3(100, 300, 100));
 
         // Set up lights.
         DirectionalLight light = new DirectionalLight(0.2f, -1f, 0f);
@@ -90,10 +91,10 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         material.setColor(0);
 
         Texture earthTexture = new Texture("Asteroid", R.drawable.asteroid);
-        try{
+        try {
             material.addTexture(earthTexture);
 
-        } catch (TextureException error){
+        } catch (TextureException error) {
             RajLog.i("DEBUG TEXTURE ERROR");
         }
 
@@ -104,7 +105,7 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         getCurrentScene().addChild(mLookatSphere);
 
         // Set up crosshair.
-        crosshairPlane = new Plane(2, 2, 12, 12);
+        crosshairPlane = new Plane(1, 1, 1, 1);
         Material crosshairMat = new Material();
         crosshairMat.enableLighting(true);
         crosshairMat.setDiffuseMethod(new DiffuseMethod.Lambert());
@@ -205,27 +206,11 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
 
     public void handleTab() {
         // Extract orientation looked at.
-        isTabbed = true;
+        moveForward = true;
         fireRocket = true;
     }
 
     public void handleCameraMovement(double units) {
-        if (isTabbed) {
-            String output = "Old position:" + getCurrentCamera().getPosition().toString() + "\t";
-            final Vector3 movement = WorldParameters.FORWARD_AXIS.clone();
-            movement.rotateBy(getCurrentCamera().getOrientation()).multiply(units);
-            movement.inverse();
-            movement.y = 0;
-            cameraPosition = cameraPosition.clone().add(movement);
-
-            // Set globe position.
-//            Vector3 spherePos = cameraPosition.clone();
-//            spherePos.add(movement);
-//            mLookatSphere.setPosition(spherePos);
-//            output += "New position: " + movement;
-//            RajLog.i(output);
-            isTabbed = false;
-        }
         if (fireRocket) {
             Quaternion currentOrientation = getCurrentCamera().getOrientation().clone();
             Vector3 currentPosition = cameraPosition.clone();
@@ -245,7 +230,7 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
     public Bitmap drawTextToBitmap(Context gContext, String gText) {
         Resources resources = gContext.getResources();
         float scale = resources.getDisplayMetrics().density;
-        Bitmap bitmap =Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888);
 
         Canvas canvas = new Canvas(bitmap);
         // new antialised Paint
@@ -260,11 +245,19 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         paint.setTextAlign(Paint.Align.CENTER);
 
         paint.getTextBounds(gText, 0, gText.length(), bounds);
-        int x = (bitmap.getWidth() - bounds.width())/2;
-        int y = (bitmap.getHeight() + bounds.height())/2;
+        int x = (bitmap.getWidth() - bounds.width()) / 2;
+        int y = (bitmap.getHeight() + bounds.height()) / 2;
 
         canvas.drawText(gText, x * scale, y * scale, paint);
 
         return bitmap;
+    }
+
+    public Vector3 getCameraPosition() {
+        return cameraPosition;
+    }
+
+    public void setCameraPosition(Vector3 cameraPosition) {
+        this.cameraPosition = cameraPosition;
     }
 }

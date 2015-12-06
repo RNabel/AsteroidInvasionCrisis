@@ -104,4 +104,16 @@ public abstract class MovingObject extends StationaryObject {
     public void setOuterVelocity(Vector3 outerVelocity) {
         this.outerVelocity = outerVelocity;
     }
+
+    @Override
+    public String toString() {
+        return "MovingObject{" +
+                "velocity=" + velocity +
+                ", acceleration=" + acceleration +
+                ", outerAcceleration=" + outerAcceleration +
+                ", outerVelocity=" + outerVelocity +
+                ", gravity=" + gravity +
+                ", isInfluencedByGrav=" + isInfluencedByGrav +
+                '}';
+    }
 }

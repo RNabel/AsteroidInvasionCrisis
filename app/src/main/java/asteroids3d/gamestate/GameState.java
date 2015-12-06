@@ -27,14 +27,7 @@ public class GameState {
         GameState.state = this;
         this.currentScene = currentState;
 
-        // Create current Level.
-        currentLevel = new Level(0);
-
-        // Instantiate AsteroidManager.
-        TreeSet<Double> times = currentLevel.getStartTimes();
-        asteroidManager = new AsteroidManager(times, currentScene);
-
-        topLevelManager = new TopLevelManager(100, currentScene);
+        setupFirstLevel();
     }
 
     /**
@@ -45,6 +38,8 @@ public class GameState {
     public void updateGameState(double deltaTime, long totalTime, boolean isTabbed) {
         asteroidManager.update(deltaTime, totalTime);
         topLevelManager.update(deltaTime, totalTime);
+
+        // Test whether
         // Transition between game states. TODO at later point.
 //        if (mouseClicked) {
 //            EntryPoint entryPoint = (EntryPoint) getApplet();
@@ -82,7 +77,7 @@ public class GameState {
     private void setupFirstLevel() {
         currentFrame = 0l;
         points = new Points();
-        currentLevel = new Level(1);
+        currentLevel = new Level(0);
 
         // Instantiate all managers.
         bgManager = new BackgroundManager(currentScene);
@@ -114,8 +109,8 @@ public class GameState {
 
     public void setStateType(ProgramState newType) {
         // Update points.
-        if (newType == ProgramState.GAME_OVER) {
-            this.points.endOfLevelPointUpdate(this, currentLevel.getLevel());
+        if (newType == ProgramState.GAME_OVER) { // Notified by vehicle class.
+//            this.points.endOfLevelPointUpdate(this, currentLevel.getLevel());
         }
     }
 

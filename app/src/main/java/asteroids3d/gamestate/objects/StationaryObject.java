@@ -3,9 +3,6 @@ package asteroids3d.gamestate.objects;
 import org.rajawali3d.Object3D;
 import org.rajawali3d.math.vector.Vector3;
 
-/**
- * Author rn30.
- */
 // Class which sets a superclass for any rendered object in the game state.
 public abstract class StationaryObject {
     private Vector3 location;
@@ -46,6 +43,6 @@ public abstract class StationaryObject {
     }
 
     public static double[] vectorToArray(Vector3 inputVector) {
-        return new double[] {inputVector.x, inputVector.y, inputVector.z};
+        return new double[]{inputVector.x, inputVector.y, inputVector.z};
     }
 }

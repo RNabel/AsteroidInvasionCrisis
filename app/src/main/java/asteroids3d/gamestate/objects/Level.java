@@ -6,7 +6,7 @@ import java.util.TreeSet;
 // Holds the state of the level.
 public class Level {
     private long levelLength = 30; // In wall-clock time in ns.
-    public static final int rocketsToStart = 20;
+    public static final int rocketsToStart = 100;
     private int totalAsteroids;
     private Random random;
     private TreeSet<Double> startTimes;

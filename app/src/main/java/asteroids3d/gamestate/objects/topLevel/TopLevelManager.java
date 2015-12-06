@@ -12,19 +12,22 @@ import java.util.List;
 public class TopLevelManager extends Manager {
     private RocketManager rManager;
     private ExplosionManager eManager;
+    private Vehicle vehicle;
     private int rocketsAvailable;
 
     public TopLevelManager(int rocketsAvailable, RajawaliScene scene) {
         super(scene);
         rManager = new RocketManager(this, scene);
         eManager = new ExplosionManager(this, scene);
+        vehicle = new Vehicle(this);
         this.rocketsAvailable = rocketsAvailable;
     }
 
     @Override
     public void update(double deltaTime, long totalTime) {
+        eManager.update(deltaTime, totalTime);
         rManager.update(deltaTime, totalTime);
-//        eManager.update(deltaTime, totalTime);
+        vehicle.updateState();
     }
 
     public List<Rocket> getRockets() {
@@ -61,7 +64,7 @@ public class TopLevelManager extends Manager {
     }
 
     public RajawaliVRExampleRenderer getRenderer() {
-        return null;
+        return super.getRenderer();
     }
 
     public void createExplosion(Vector3 location) {
@@ -78,5 +81,9 @@ public class TopLevelManager extends Manager {
 
     public RocketManager getrManager() {
         return rManager;
+    }
+
+    public ExplosionManager geteManager() {
+        return eManager;
     }
 }
