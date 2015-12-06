@@ -1,5 +1,7 @@
 package asteroids3d.gamestate.objects.Asteroids;
 
+import net.sf.javaml.core.kdtree.KDTree;
+
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.scene.RajawaliScene;
@@ -18,12 +20,15 @@ public class AsteroidManager extends Manager {
     private List<Asteroid> asteroids;
     private IntervalRandom random = new IntervalRandom();
     private TreeSet<Double> startTimes;
-    
+    private KDTree asteroidLocationMap;
+
     public AsteroidManager(TreeSet<Double> rockTimes, RajawaliScene scene) {
         super(scene);
         this.asteroids = new ArrayList<>();
         this.startTimes = rockTimes;
+        asteroidLocationMap = new KDTree(3);
     }
+
 
     private void initAsteroid() {
         RajLog.i("Created Asteroid.");
@@ -39,7 +44,7 @@ public class AsteroidManager extends Manager {
                 new Vector3(0, -0.01, 0),   // Acceleration.
 //                createRandomVelocity(true, 2),  // Velocity.
                 new Vector3(0, -0.01, 0),   // Velocity.
-                10); // Radius.
+                3); // Radius.
 
         // 5% chance that rock splits.
         boolean splits = random.nextDouble() < 0.05;
@@ -48,7 +53,6 @@ public class AsteroidManager extends Manager {
         // Add Asteroid to RajawaliScene.
         asteroids.add(newAsteroid);
     }
-
 
     @Override
     public void update(double frameNumber, long totalTime) {
@@ -124,5 +128,9 @@ public class AsteroidManager extends Manager {
         float speed = random.nextFloat() * 3;
         initialVel.multiply(speed);
         return initialVel;
+    }
+
+    public KDTree getAsteroidLocationMap() {
+        return asteroidLocationMap;
     }
 }

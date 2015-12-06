@@ -18,6 +18,8 @@ import java.util.List;
  */
 public class ExplosionManager extends Manager {
     private Manager manager;
+    public static int explosionSize = 5;
+
     Object3D bangShape;
     private List<Explosion> explosions = new ArrayList<>();
 

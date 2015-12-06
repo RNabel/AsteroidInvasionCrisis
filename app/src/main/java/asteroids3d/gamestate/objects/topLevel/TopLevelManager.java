@@ -9,9 +9,6 @@ import asteroids3d.gamestate.objects.Manager;
 
 import java.util.List;
 
-/**
- * Author rn30.
- */
 public class TopLevelManager extends Manager {
     private RocketManager rManager;
     private ExplosionManager eManager;
