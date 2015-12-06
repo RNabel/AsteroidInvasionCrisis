@@ -90,7 +90,7 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         material.setDiffuseMethod(new DiffuseMethod.Lambert());
         material.setColor(0);
 
-        Texture earthTexture = new Texture("Asteroid", R.drawable.asteroid);
+        Texture earthTexture = new Texture("Asteroid", R.drawable.asteroid_small);
         try {
             material.addTexture(earthTexture);
 

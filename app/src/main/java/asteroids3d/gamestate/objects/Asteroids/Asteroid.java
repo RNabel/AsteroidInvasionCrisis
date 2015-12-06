@@ -80,10 +80,6 @@ public class Asteroid extends MovingObject {
 
     @Override
     public boolean updatePosition() {
-        if (splits && getLocation().y > altitude) {
-            // Split the rock.
-            // TODO
-        }
         return super.updatePosition();
     }
 
