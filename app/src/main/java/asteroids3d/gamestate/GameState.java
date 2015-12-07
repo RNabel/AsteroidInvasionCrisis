@@ -47,7 +47,7 @@ public class GameState {
         // Transition between game states. TODO at later point.
         switch (currentProgramState) {
             case IN_LEVEL:
-                displayString = "Rockets: " + topLevelManager.getRocketsAvailable() + "\n\n\n\n\n\n\n\n\n\n\nAsteroids: " + asteroidManager.getAsteroids().size() + "\nPoints: " + points.getTotalPoints();
+                displayString = "Rockets: " + topLevelManager.getRocketsAvailable() + "\n\n\n\n\n\n\n\nAsteroids: " + asteroidManager.getAsteroids().size() + "\tPoints: " + points.getTotalPoints();
                 asteroidManager.update(deltaTime, totalTime);
                 topLevelManager.update(deltaTime, totalTime);
                 break;
@@ -57,6 +57,7 @@ public class GameState {
                 displayString = MENU_STRING;
                 if (renderer.nextState) {
                     setStateType(ProgramState.IN_LEVEL);
+                    renderer.nextState = false;
                 }
                 break;
 
@@ -67,6 +68,7 @@ public class GameState {
                 if (renderer.nextState) {
                     // Create Level.
                     setStateType(ProgramState.IN_LEVEL);
+                    renderer.nextState = false;
                 }
                 // TODO Render points.
                 break;
@@ -78,6 +80,7 @@ public class GameState {
                 // TODO Render points.
                 if (renderer.nextState) {
                     setStateType(ProgramState.MENU);
+                    renderer.nextState = false;
                 }
                 break;
         }

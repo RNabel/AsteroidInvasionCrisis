@@ -35,11 +35,12 @@ public class TopLevelManager extends Manager {
     }
 
     public int getRocketsAvailable() {
-        return rocketsAvailable;
+        return getGameState().getCurrentLevel().getRocketsToStart();
     }
 
     public void decreaseRocketsAvailable() {
         if (rocketsAvailable > 0) {
+            getGameState().getCurrentLevel().decrementRocketsLeft();
             this.rocketsAvailable--;
         } else {
             System.err.println("Tried to decrease num of rockets although not possible.");

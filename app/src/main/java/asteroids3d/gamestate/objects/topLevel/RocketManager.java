@@ -95,6 +95,7 @@ public class RocketManager extends Manager {
             Vector3 velocity = WorldParameters.FORWARD_AXIS.clone();
             velocity.rotateBy(getRenderer().getCurrentCamera().getOrientation());
             velocity.inverse();
+            velocity.multiply(2);
 
             Rocket newRocket = new Rocket(this, origin, acceleration, velocity);
             rockets.add(newRocket);

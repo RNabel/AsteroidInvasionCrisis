@@ -37,7 +37,7 @@ public class Explosion extends StationaryObject {
         }
 
         explosion.setMaterial(material);
-        explosion.setColor(Color.MAGENTA);
+//        explosion.setColor(Color.MAGENTA);
         explosion.setPosition(location);
         // Add explosion to scene.
         getManager().getCurrentScene().addChild(explosion);
@@ -46,7 +46,7 @@ public class Explosion extends StationaryObject {
 
     public boolean updateSize() {
         getShape().setScale(scale);
-        scale -= 0.1;
+        scale -= 0.2;
         return scale <= 0;
     }
 

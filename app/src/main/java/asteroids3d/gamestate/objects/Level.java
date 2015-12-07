@@ -73,4 +73,8 @@ public class Level {
     public int getLevel() {
         return level;
     }
+
+    public void decrementRocketsLeft() {
+        this.rocketsToStart--;
+    }
 }

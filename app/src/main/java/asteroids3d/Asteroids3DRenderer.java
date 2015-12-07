@@ -37,7 +37,6 @@ public class Asteroids3DRenderer extends RajawaliVRRenderer {
     private Plane centralPane;
     private Plane leftTopPlane;
     private Plane leftBottomPlane;
-    private Sphere mLookatSphere;
 
     private GameState state;
 
@@ -105,12 +104,6 @@ public class Asteroids3DRenderer extends RajawaliVRRenderer {
         } catch (TextureException error) {
             RajLog.i("DEBUG TEXTURE ERROR");
         }
-
-        mLookatSphere = new Sphere(1, 12, 12);
-        mLookatSphere.setMaterial(material);
-        mLookatSphere.setColor(Color.YELLOW);
-        mLookatSphere.setPosition(0, 0, 6);
-        getCurrentScene().addChild(mLookatSphere);
 
         // Set up crosshair.
         centralPane = new Plane(1, 1, 1, 1);
@@ -196,17 +189,6 @@ public class Asteroids3DRenderer extends RajawaliVRRenderer {
         state.updateGameState(deltaTime, elapsedTime); // TODO pass in touch.
 
         super.onRender(elapsedTime, deltaTime);
-
-        boolean isLookingAt = isLookingAtObject(mLookatSphere);
-        if (isLookingAt) {
-            if (isTriggered < 100) {
-                mLookatSphere.setColor(Color.GREEN);
-            } else {
-                mLookatSphere.setColor(Color.RED);
-            }
-        } else {
-            mLookatSphere.setColor(Color.YELLOW);
-        }
 
         isTriggered = (isTriggered + 1) % Integer.MAX_VALUE;
         isTabbed = false;
