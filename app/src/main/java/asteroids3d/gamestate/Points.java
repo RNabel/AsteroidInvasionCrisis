@@ -8,17 +8,19 @@ import java.util.Map;
  */
 public class Points {
     private static final float LEVEL_FACTOR = 1.1f;
+    private int numOfLives;
+    boolean dirty = true;
 
     public enum pointTypes {
-        DAMAGE, ROCK_DESTROYED
+        ASTEROID_MISSED, ASTEROID_DESTROYED
     }
 
     // Mappings of values to their point value.
     private static final Map<pointTypes, Integer> valueMappings;
     static {
         valueMappings = new HashMap<>();
-        valueMappings.put(pointTypes.DAMAGE, -100);
-        valueMappings.put(pointTypes.ROCK_DESTROYED, 10);
+        valueMappings.put(pointTypes.ASTEROID_MISSED, -50);
+        valueMappings.put(pointTypes.ASTEROID_DESTROYED, 10);
     }
 
     // Points achieved are associated with how they were received.
@@ -32,12 +34,22 @@ public class Points {
         }
     }
 
-    public void increasePoints(pointTypes type, int number, int currentLevel) {
+    private void increasePoints(pointTypes type, int number, int currentLevel) {
         int existingPoints = this.pointMappings.get(type);
         this.pointMappings.put(type, Math.round (existingPoints + number *
                         valueMappings.get(type) *
                         (1 + LEVEL_FACTOR + currentLevel))
         );
+    }
+
+    // Point short hands.
+    public void asteroidDestroyed(int level) {
+        pointTypes type = pointTypes.ASTEROID_DESTROYED;
+        increasePoints(type, 1, level);
+    }
+    public void asteroidImpact(int level) {
+        pointTypes type = pointTypes.ASTEROID_MISSED;
+        increasePoints(type, 1, level);
     }
 
     public int getTotalPoints() {
@@ -56,5 +68,9 @@ public class Points {
 
     public void endOfLevelPointUpdate(GameState state, int level) {
         // TODO Code to count up points.
+    }
+
+    public void setDirty(boolean dirty) {
+        this.dirty = dirty;
     }
 }

@@ -2,13 +2,18 @@ package asteroids3d;
 
 import org.rajawali3d.util.RajLog;
 import org.rajawali3d.vr.RajawaliVRActivity;
+
+import android.app.admin.DeviceAdminInfo;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.view.InputDevice;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.Window;
 import android.view.WindowManager;
 
-public class RajawaliVRExampleActivity extends RajawaliVRActivity {
-    private RajawaliVRExampleRenderer mRenderer;
+public class Asteroids3DActivity extends RajawaliVRActivity {
+    private Asteroids3DRenderer mRenderer;
 
 
     @Override
@@ -24,7 +29,7 @@ public class RajawaliVRExampleActivity extends RajawaliVRActivity {
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-        mRenderer = new RajawaliVRExampleRenderer(this);
+        mRenderer = new Asteroids3DRenderer(this);
         setRenderer(mRenderer);
 
         setConvertTapIntoTrigger(true);
@@ -38,5 +43,21 @@ public class RajawaliVRExampleActivity extends RajawaliVRActivity {
         mRenderer.isTriggered = 0;
         mRenderer.handleTab();
         RajLog.i("onCardboardTrigger");
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.isFromSource(InputDevice.SOURCE_GAMEPAD)) {
+            if (event.getScanCode() == 9 && event.getAction() == KeyEvent.ACTION_DOWN) {
+                // Fire button clicked.
+                mRenderer.fireRocket = true;
+            } else if (event.getScanCode() == 3 && event.getAction() == KeyEvent.ACTION_UP) { // A clicked.
+                mRenderer.nextState = true;
+            } else if (event.getScanCode() == 103 && event.getAction() == KeyEvent.ACTION_DOWN) {
+                mRenderer.moveForward = true;
+            }
+            System.out.println(event);
+        }
+        return super.dispatchKeyEvent(event);
     }
 }

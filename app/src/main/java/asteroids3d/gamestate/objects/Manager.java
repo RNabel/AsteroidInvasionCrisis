@@ -1,12 +1,9 @@
 package asteroids3d.gamestate.objects;
 
 import org.rajawali3d.bounds.BoundingBox;
-import org.rajawali3d.primitives.Cube;
 import org.rajawali3d.scene.RajawaliScene;
 
-import java.util.Random;
-
-import asteroids3d.RajawaliVRExampleRenderer;
+import asteroids3d.Asteroids3DRenderer;
 import asteroids3d.gamestate.GameState;
 
 /**
@@ -22,7 +19,7 @@ public abstract class Manager {
     public GameState getGameState() { return GameState.getState();  }
 
     public BoundingBox getBoundingBox() {
-        return RajawaliVRExampleRenderer.getBoundingBox();
+        return Asteroids3DRenderer.getBoundingBox();
     }
 
     public abstract void update(double deltaTime, long totalTime);
@@ -39,7 +36,9 @@ public abstract class Manager {
         this.currentScene = currentScene;
     }
 
-    public RajawaliVRExampleRenderer getRenderer() {
-        return RajawaliVRExampleRenderer.getCurrentRenderer();
+    public Asteroids3DRenderer getRenderer() {
+        return Asteroids3DRenderer.getCurrentRenderer();
     }
+
+    public abstract void tearDown();
 }

@@ -22,13 +22,11 @@ import edu.wlu.cs.levy.CG.KeySizeException;
 public class AsteroidManager extends Manager {
     private List<Asteroid> asteroids;
     private IntervalRandom random = new IntervalRandom();
-    private TreeSet<Double> startTimes;
     private KDTree<Asteroid> asteroidLocationMap;
 
-    public AsteroidManager(TreeSet<Double> rockTimes, RajawaliScene scene) {
+    public AsteroidManager(TreeSet<Long> rockTimes, RajawaliScene scene) {
         super(scene);
         this.asteroids = new ArrayList<>();
-        this.startTimes = rockTimes;
         asteroidLocationMap = new KDTree<>(3);
     }
 
@@ -46,7 +44,7 @@ public class AsteroidManager extends Manager {
                 new Vector3(xPos, 100, zPos), // Position.
                 new Vector3(0, -0.01, 0),   // Acceleration.
 //                createRandomVelocity(true, 2),  // Velocity.
-                new Vector3(0, -0.03, 0),   // Velocity.
+                new Vector3(0, -0.05, 0),   // Velocity.
                 3); // Radius.
 
         // 5% chance that rock splits.
@@ -61,12 +59,12 @@ public class AsteroidManager extends Manager {
     }
 
     @Override
-    public void update(double frameNumber, long totalTime) {
-        Iterator<Double> longIt = startTimes.iterator();
+    public void update(double deltaTime, long totalTime) {
+        Iterator<Long> longIt = getGameState().getCurrentLevel().getStartTimes().iterator();
 
         // Check if level over as no asteroids falling any more.
         if (asteroids.size() == 0) {
-            boolean isFinished = getGameState().getCurrentLevel().checkIfEndOfLevel(frameNumber);
+            boolean isFinished = getGameState().getCurrentLevel().checkIfEndOfLevel(totalTime);
             if (isFinished) {
                 // Notify the GameState that the level is over.
                 getGameState().setStateType(ProgramState.AFTER_LEVEL);
@@ -74,7 +72,7 @@ public class AsteroidManager extends Manager {
         }
 
         while (longIt.hasNext() &&
-                longIt.next() <= (totalTime / 1000000000)) {
+                longIt.next() <= totalTime) {
             initAsteroid();
             longIt.remove();
         }
@@ -94,11 +92,22 @@ public class AsteroidManager extends Manager {
 
             // Check if asteroids are on screen.
             if (!isOnScreen) {
-                RajLog.i("Removed asteroid. Info: " + asteroid.getLocation().toString());
                 it.remove();
                 getCurrentScene().removeChild(asteroid.getShape());
+
+                // Update points.
+                getGameState().getPoints().asteroidImpact(getGameState().getCurrentLevel().getLevel());
             }
             // TODO add collision with vehicle and other asteroids.
+        }
+    }
+
+    @Override
+    public void tearDown() {
+        // Remove all asteroids from the scene.
+        for (Asteroid asteroid :
+                this.getAsteroids()) {
+            getCurrentScene().removeChild(asteroid.getShape());
         }
     }
 
@@ -116,9 +125,7 @@ public class AsteroidManager extends Manager {
         // TODO make sure asteroid is removed from scene element and location tree.
 //        deleteFromLocationTree(asteroid.getLocation());
         getCurrentScene().removeChild(asteroid.getShape());
-        RajLog.i("Before asteroid delete:" + asteroids.size());
         this.asteroids.remove(asteroid);
-        RajLog.i("After asteroid delete:" + asteroids.size());
     }
 
     // Expects int to indicate whether to go right (0), left (1), or anywhere.

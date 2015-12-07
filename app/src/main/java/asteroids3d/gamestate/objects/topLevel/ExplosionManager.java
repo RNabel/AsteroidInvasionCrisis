@@ -43,6 +43,14 @@ public class ExplosionManager extends Manager {
         }
     }
 
+    @Override
+    public void tearDown() {
+        for (Explosion explosion :
+                explosions) {
+            getCurrentScene().removeChild(explosion.getShape());
+        }
+    }
+
     public void createExplosion(Vector3 location) {
         RajLog.i("Created new Explosion [ExplosionManager]");
         Explosion expl = new Explosion(this, location);

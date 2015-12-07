@@ -1,13 +1,16 @@
 package asteroids3d;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
+import android.graphics.Matrix;
+import android.graphics.RectF;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
+import android.util.DisplayMetrics;
 
 import org.rajawali3d.WorldParameters;
 import org.rajawali3d.bounds.BoundingBox;
@@ -25,26 +28,28 @@ import org.rajawali3d.util.RajLog;
 import org.rajawali3d.vr.renderer.RajawaliVRRenderer;
 
 import asteroids3d.gamestate.GameState;
-import asteroids3d.gamestate.objects.ProgramState;
 
-public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
-    private static RajawaliVRExampleRenderer currentRenderer;
+public class Asteroids3DRenderer extends RajawaliVRRenderer {
+    private static Asteroids3DRenderer currentRenderer;
     private static BoundingBox boundingBox;
 
-    private ProgramState currentState;
     private Plane mPlane;
-    private Plane crosshairPlane;
+    private Plane centralPane;
+    private Plane leftTopPlane;
+    private Plane leftBottomPlane;
     private Sphere mLookatSphere;
 
     private GameState state;
 
     public int isTriggered = 0;
     public boolean moveForward;
-    private boolean fireRocket;
+    public boolean fireRocket;
+    public boolean isTabbed;
+    public boolean nextState;
 
     private Vector3 cameraPosition = new Vector3(0, 5, 0);
 
-    public RajawaliVRExampleRenderer(Context context) {
+    public Asteroids3DRenderer(Context context) {
         super(context);
     }
 
@@ -82,7 +87,7 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         createFloor();
 
         // Instantiate game state to kick off the game.
-        state = new GameState(getCurrentScene());
+        state = new GameState(getCurrentScene(), this);
 
         // Create sample asteroid
         Material material = new Material();
@@ -105,22 +110,47 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         getCurrentScene().addChild(mLookatSphere);
 
         // Set up crosshair.
-        crosshairPlane = new Plane(1, 1, 1, 1);
-        Material crosshairMat = new Material();
-        crosshairMat.enableLighting(true);
-        crosshairMat.setDiffuseMethod(new DiffuseMethod.Lambert());
-        crosshairMat.setColorInfluence(0);
+        centralPane = new Plane(1, 1, 1, 1);
+        Material crosshairMaterial = getStandardMaterial();
         Bitmap crosshairBitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.crosshair);
+//        Bitmap crosshairBitmap = drawTextToBitmap(mContext, "HELLO POINTS!!!");
+
+        Texture tex = (Texture) crosshairMaterial.getTextureList().get(0);
+        tex.setBitmap(crosshairBitmap);
+
+        centralPane.setMaterial(crosshairMaterial);
+        centralPane.setDoubleSided(true);
+        centralPane.setTransparent(true);
+        getCurrentScene().addChild(centralPane);
+
+        leftTopPlane = new Plane(2, 2, 1, 1);
+        leftTopPlane.setMaterial(getStandardMaterial());
+        leftTopPlane.setTransparent(true);
+        leftTopPlane.setDoubleSided(true);
+        getCurrentScene().addChild(leftTopPlane);
+
+        leftBottomPlane = new Plane(1, 1, 1, 1);
+        leftBottomPlane.setMaterial(getStandardMaterial());
+        leftBottomPlane.setTransparent(true);
+        leftBottomPlane.setDoubleSided(true);
+//        getCurrentScene().addChild(leftBottomPlane);
+
+
+        super.initScene();
+    }
+
+    private Material getStandardMaterial() {
+        Material newMaterial = new Material();
+        newMaterial.enableLighting(true);
+//        newMaterial.setDiffuseMethod(new DiffuseMethod.Lambert());
+        newMaterial.setColorInfluence(0);
+        Bitmap transparentBitmap = drawTextToBitmap("");
         try {
-            crosshairMat.addTexture(new Texture("crosshair", crosshairBitmap));
+            newMaterial.addTexture(new Texture("placeholder", transparentBitmap));
         } catch (TextureException e) {
             e.printStackTrace();
         }
-        crosshairPlane.setMaterial(crosshairMat);
-        crosshairPlane.setTransparent(true);
-        getCurrentScene().addChild(crosshairPlane);
-
-        super.initScene();
+        return newMaterial;
     }
 
     public void createFloor() {
@@ -155,13 +185,12 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
 
     @Override
     public void onRender(long elapsedTime, double deltaTime) {
-        handleCameraMovement(10);
         // Update position of camera.
         getCurrentCamera().setPosition(cameraPosition);
         // Show HUD.
         showHudComponents();
         // Update game state.
-        state.updateGameState(deltaTime, elapsedTime, false); // TODO pass in touch.
+        state.updateGameState(deltaTime, elapsedTime); // TODO pass in touch.
 
         super.onRender(elapsedTime, deltaTime);
 
@@ -177,6 +206,7 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         }
 
         isTriggered = (isTriggered + 1) % Integer.MAX_VALUE;
+        isTabbed = false;
     }
 
     /**
@@ -186,40 +216,66 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         Quaternion currentOrientation = getCurrentCamera().getOrientation();
         Vector3 currentPosition = getCurrentCamera().getPosition();
 
-        // Show crosshair.
-        crosshairPlane.setOrientation(currentOrientation);
-        crosshairPlane.setPosition(currentPosition);
-        getCurrentScene().removeChild(crosshairPlane);
-        getCurrentScene().addChild(crosshairPlane);
+        showHudHelper(currentOrientation.clone(), currentPosition);
+        showHudPositionHelper(currentOrientation);
 
-        final Vector3 movement = WorldParameters.FORWARD_AXIS.clone();
-        movement.rotateBy(currentOrientation).multiply(3);
-        movement.inverse();
-        crosshairPlane.getPosition().add(movement);
-
-        // Show points.
+        // Show points and remaining rockets.
+//        int rockets = state.getTopLevelManager().getRocketsAvailable();
+//        int totalAsteroids = state.getAsteroidManager().getAsteroids().size();
+        Bitmap pointBitmap = drawTextToBitmap(state.displayString);
+        Texture currentTexture = (Texture) leftTopPlane.getMaterial().getTextureList().get(0);
+        currentTexture.getBitmap().recycle();
+        currentTexture.setBitmap(pointBitmap);
+        getTextureManager().replaceTexture(currentTexture);
+//            leftTopPlane.getMaterial().addTexture(new Texture("123", pointBitmap));
         // TODO
 
         // Show remaining rockets.
         // TODO.
     }
 
+    private void showHudHelper(Quaternion orientation, Vector3 position) {
+        Quaternion currentOrientation = orientation.clone();
+
+        // Central plane.
+        centralPane.setOrientation(currentOrientation);
+        centralPane.setPosition(position);
+        getCurrentScene().removeChild(centralPane);
+        getCurrentScene().addChild(centralPane);
+
+        // Left top plane.
+        leftTopPlane.setOrientation(currentOrientation);
+        leftTopPlane.setPosition(position);
+        getCurrentScene().removeChild(leftTopPlane);
+        getCurrentScene().addChild(leftTopPlane);
+
+        // Left bottom plane.
+        leftBottomPlane.setOrientation(currentOrientation);
+        leftBottomPlane.setPosition(position);
+        getCurrentScene().removeChild(leftBottomPlane);
+        getCurrentScene().addChild(leftBottomPlane);
+    }
+
+    private void showHudPositionHelper(Quaternion currentOrientation) {
+        final Vector3 movement = WorldParameters.FORWARD_AXIS.clone();
+        Quaternion relative = currentOrientation.clone();
+        movement.rotateBy(relative).multiply(3);
+        movement.inverse();
+        centralPane.getPosition().add(movement);
+
+        // TODO move off to the side.
+        leftTopPlane.getPosition().add(movement);
+//        leftBottomPlane.getPosition().add(movement);
+    }
+
     public void handleTab() {
         // Extract orientation looked at.
+        isTabbed = true;
         moveForward = true;
         fireRocket = true;
     }
 
-    public void handleCameraMovement(double units) {
-        if (fireRocket) {
-            Quaternion currentOrientation = getCurrentCamera().getOrientation().clone();
-            Vector3 currentPosition = cameraPosition.clone();
-            this.state.getTopLevelManager().getrManager().rocketLaunched(currentOrientation, currentPosition);
-            fireRocket = false;
-        }
-    }
-
-    public static RajawaliVRExampleRenderer getCurrentRenderer() {
+    public static Asteroids3DRenderer getCurrentRenderer() {
         return currentRenderer;
     }
 
@@ -227,30 +283,32 @@ public class RajawaliVRExampleRenderer extends RajawaliVRRenderer {
         return boundingBox;
     }
 
-    public Bitmap drawTextToBitmap(Context gContext, String gText) {
-        Resources resources = gContext.getResources();
-        float scale = resources.getDisplayMetrics().density;
-        Bitmap bitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888);
+    public Bitmap drawTextToBitmap(String gText) {
+        Bitmap bitmap = Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888);
+        bitmap.eraseColor(Color.TRANSPARENT);
+        bitmap.setHasAlpha(true);
 
+//        bitmap.setHasAlpha(true);
         Canvas canvas = new Canvas(bitmap);
-        // new antialised Paint
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        // text color - #3D3D3D
-        paint.setColor(Color.rgb(61, 61, 61));
-        // text size in pixels
-        paint.setTextSize(3);
+        canvas.drawColor(Color.TRANSPARENT);
 
-        // draw text to the Canvas center
-        Rect bounds = new Rect();
-        paint.setTextAlign(Paint.Align.CENTER);
+        TextPaint textPaint = new TextPaint();
+        textPaint.setColor(Color.GREEN);
+        textPaint.setTextSize(40);
+        RectF rect = new RectF(0, 0, 300, 300);
+        StaticLayout sl = new StaticLayout(gText,
+                textPaint, (int) rect.width(), Layout.Alignment.ALIGN_CENTER, 1, 1, false);
+        canvas.save();
+        sl.draw(canvas);
+        canvas.restore();
 
-        paint.getTextBounds(gText, 0, gText.length(), bounds);
-        int x = (bitmap.getWidth() - bounds.width()) / 2;
-        int y = (bitmap.getHeight() + bounds.height()) / 2;
+        // Flip the image.
+        Matrix m = new Matrix();
+        m.preScale(-1, 1);
+        Bitmap output = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, false);
+        output.setDensity(DisplayMetrics.DENSITY_DEFAULT);
 
-        canvas.drawText(gText, x * scale, y * scale, paint);
-
-        return bitmap;
+        return output;
     }
 
     public Vector3 getCameraPosition() {

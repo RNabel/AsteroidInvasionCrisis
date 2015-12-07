@@ -1,95 +1,105 @@
 package asteroids3d.gamestate;
 
 import org.rajawali3d.scene.RajawaliScene;
+import org.rajawali3d.util.RajLog;
 
-import java.util.TreeSet;
-
+import asteroids3d.Asteroids3DRenderer;
 import asteroids3d.gamestate.objects.Asteroids.AsteroidManager;
 import asteroids3d.gamestate.objects.Level;
 import asteroids3d.gamestate.objects.ProgramState;
-import asteroids3d.gamestate.objects.background.BackgroundManager;
 import asteroids3d.gamestate.objects.topLevel.TopLevelManager;
 
 // The main game state of the game, is used by the rendering engine,
 public class GameState {
     private static GameState state = null;
+    private final Asteroids3DRenderer renderer;
     private RajawaliScene currentScene;
 
-    private BackgroundManager bgManager;
     private TopLevelManager topLevelManager;
     private AsteroidManager asteroidManager;
     private Points points;
 
+    private ProgramState currentProgramState;
     private Level currentLevel;
-    private Long currentFrame = 0l;
+    private long currentTotalTime = 0l;
 
-    public GameState(RajawaliScene currentState) { // TODO fix this.
+    public String displayString;
+    private final String MENU_STRING = "Welcome! press A to continue";
+
+    public GameState(RajawaliScene currentState, Asteroids3DRenderer rajawaliVRExampleRenderer) { // TODO fix this.
         GameState.state = this;
+        this.renderer = rajawaliVRExampleRenderer;
         this.currentScene = currentState;
-
-        setupFirstLevel();
+        currentProgramState = ProgramState.MENU;
+        displayString = "TEST STRING HELLO!";
     }
 
     /**
      * Method called before rendering every frame.
+     * Only rendering-related code is placed in this method, all set-up related code is
+     * placed in setStateType.
+     *
      * @param deltaTime - delta time, time elapsed from last rendered frame.
-     * @param isTabbed - Whether the trigger was used in last frame cycle.
      */
-    public void updateGameState(double deltaTime, long totalTime, boolean isTabbed) {
-        asteroidManager.update(deltaTime, totalTime);
-        topLevelManager.update(deltaTime, totalTime);
+    public void updateGameState(double deltaTime, long totalTime) {
+        this.currentTotalTime = totalTime;
 
-        // Test whether
         // Transition between game states. TODO at later point.
-//        if (mouseClicked) {
-//            EntryPoint entryPoint = (EntryPoint) getApplet();
-//            switch (entryPoint.getGameStateType()) {
-//                case IN_LEVEL:
-//                    topLevelManager.mouseClicked();
-//                    break;
-//
-//                case MAIN_MENU:
-//                    setupFirstLevel();
-//                    entryPoint.setStateType(EntryPoint.stateType.IN_LEVEL);
-//                    return;
-//
-//                case AFTER_LEVEL:
-//                    entryPoint.setStateType(EntryPoint.stateType.IN_LEVEL);
-//                    return;
-//
-//                case GAME_OVER:
-//                    // Transition to main menu.
-//                    entryPoint.setStateType(EntryPoint.stateType.MAIN_MENU);
-//                    return;
-//            }
-//        }
-//
-//        if (((EntryPoint) applet).getGameStateType() == EntryPoint.stateType.IN_LEVEL) {
-//            // Update each part of the state.
-//            topLevelManager.update(currentFrame);
-//            asteroidManager.update(currentFrame);
-//            bgManager.update(currentFrame);
-//            currentFrame++;
-//        }
+        switch (currentProgramState) {
+            case IN_LEVEL:
+                displayString = "Rockets: " + topLevelManager.getRocketsAvailable() + "\n\n\n\n\n\n\n\n\nAsteroids: " + asteroidManager.getAsteroids().size();
+                asteroidManager.update(deltaTime, totalTime);
+                topLevelManager.update(deltaTime, totalTime);
+                break;
 
+            case MENU: // Check whether any option was selected.
+                // TODO Render option menu.
+                displayString = MENU_STRING;
+                if (renderer.nextState) {
+                    setStateType(ProgramState.IN_LEVEL);
+                }
+                break;
+
+            case AFTER_LEVEL: // Check whether fire button clicked, if so transition to IN_LEVEL
+                // Wait for fire-button to be clicked.
+                displayString = "Level " + currentLevel.getLevel() + " is finished!\n\n\n\n\n\n\nReady for the next level?";
+                topLevelManager.update(deltaTime, totalTime);
+                if (renderer.nextState) {
+                    // Create Level.
+                    setStateType(ProgramState.IN_LEVEL);
+                }
+                // TODO Render points.
+                break;
+
+            case GAME_OVER:
+                displayString = "GAME OVER - An asteroid hit you!";
+                topLevelManager.update(deltaTime, totalTime);
+                // Wait for fire button to be clicked, to return to main menu.
+                // TODO Render points.
+                if (renderer.nextState) {
+                    setStateType(ProgramState.MENU);
+                }
+                break;
+        }
     }
 
     private void setupFirstLevel() {
-        currentFrame = 0l;
         points = new Points();
-        currentLevel = new Level(0);
+        currentLevel = new Level(0, currentTotalTime); // TODO test.
 
         // Instantiate all managers.
-        bgManager = new BackgroundManager(currentScene);
+        if (asteroidManager != null) {
+            asteroidManager.tearDown();
+        }
+        if (topLevelManager != null) {
+            topLevelManager.tearDown();
+        }
+
         asteroidManager = new AsteroidManager(currentLevel.getStartTimes(), currentScene);
         topLevelManager = new TopLevelManager(Level.rocketsToStart, currentScene); // TODO add raj scene here.
     }
 
     // Getters and Setters.
-    public BackgroundManager getBgManager() {
-        return bgManager;
-    }
-
     public AsteroidManager getAsteroidManager() {
         return asteroidManager;
     }
@@ -102,22 +112,41 @@ public class GameState {
         return GameState.state;
     }
 
-    // Control access to the point system.
-    public void manipulatePoints(Points.pointTypes type, int number) {
-        points.increasePoints(type, number, currentLevel.getLevel());
+    public void setStateType(ProgramState newType) {
+        RajLog.i("Game state changed: " + newType.toString());
+        ProgramState previousState = currentProgramState;
+        this.currentProgramState = newType;
+
+        // Update points at game over and display.
+        switch (newType) {
+            case GAME_OVER: // Update points and display, reset level.
+                if (renderer.isTabbed) {
+                    setStateType(ProgramState.MENU);
+                }
+                break;
+            case AFTER_LEVEL: // Display points and start next level.
+                break;
+            case MENU: // No rendering show panes offering to start. (with spinner?)
+                break;
+            case IN_LEVEL: // Normal rendering. If from menu, create first level.
+                if (previousState == ProgramState.MENU) { // Set-up first level.
+                    setupFirstLevel();
+                } else {
+                    currentLevel = new Level(currentLevel.getLevel() + 1, currentTotalTime);
+                }
+                break;
+        }
+
     }
 
-    public void setStateType(ProgramState newType) {
-        // Update points.
-        if (newType == ProgramState.GAME_OVER) { // Notified by vehicle class.
-//            this.points.endOfLevelPointUpdate(this, currentLevel.getLevel());
-        }
+    public ProgramState getCurrentProgramState() {
+        return currentProgramState;
     }
 
     public void notifyStateChanged(ProgramState newType) {
         // Only continue if next state is IN_LEVEL or AFTER_LEVEL.
         if (!(newType == ProgramState.IN_LEVEL ||
-              newType == ProgramState.AFTER_LEVEL)) return;
+                newType == ProgramState.AFTER_LEVEL)) return;
 
 //        EntryPoint.stateType current = ((EntryPoint) getApplet()).getGameStateType();
 //
@@ -136,7 +165,7 @@ public class GameState {
 //            getState().getTopLevelManager().setRocketsAvailable(currentLevel.calculateRocketNumber());
 //
 //            // Reset time.
-//            this.currentFrame = 0l;
+//            this.currentTotalTime = 0l;
 //
 //        } else if (current == EntryPoint.stateType.IN_LEVEL) {
 //            // Update points.
@@ -154,7 +183,7 @@ public class GameState {
     }
 
     public Long getCurrentFrameNumber() {
-        return this.currentFrame;
+        return this.currentTotalTime;
     }
 
     public Level getCurrentLevel() {

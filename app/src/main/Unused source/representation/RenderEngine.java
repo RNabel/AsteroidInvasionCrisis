@@ -3,7 +3,7 @@
  */
 package asteroids3d.representation;
 
-import asteroids3d.RajawaliVRExampleRenderer;
+import asteroids3d.Asteroids3DRenderer;
 import asteroids3d.gamestate.GameState;
 
 import asteroids3d.representation.rendering.after_level.AfterLevelRenderer;
@@ -15,7 +15,7 @@ import asteroids3d.representation.rendering.menu.MenuRenderer;
 
 public class RenderEngine {
     private GameState state;
-    private RajawaliVRExampleRenderer renderer;
+    private Asteroids3DRenderer renderer;
     private MenuRenderer menuRenderer;
 
     private RendererBackground backdrop;
@@ -27,7 +27,7 @@ public class RenderEngine {
     private GameOverRenderer gameOverRenderer;
 
     // TODO(rnabel) Initialize all rendering levels.
-    public RenderEngine(GameState state, RajawaliVRExampleRenderer renderer) {
+    public RenderEngine(GameState state, Asteroids3DRenderer renderer) {
         super();
 
         // Set the game state.

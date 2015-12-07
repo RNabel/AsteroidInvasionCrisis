@@ -2,7 +2,7 @@ package asteroids3d.representation.rendering;
 
 import org.rajawali3d.scene.RajawaliScene;
 
-import asteroids3d.RajawaliVRExampleRenderer;
+import asteroids3d.Asteroids3DRenderer;
 import asteroids3d.gamestate.GameState;
 
 import java.util.Random;
@@ -18,8 +18,8 @@ public abstract class RenderObject {
 
     public abstract double render();
 
-    private RajawaliVRExampleRenderer renderer = RajawaliVRExampleRenderer.getCurrentRenderer();
-    private RajawaliScene scene = RajawaliVRExampleRenderer.getCurrentRenderer().getCurrentScene();
+    private Asteroids3DRenderer renderer = Asteroids3DRenderer.getCurrentRenderer();
+    private RajawaliScene scene = Asteroids3DRenderer.getCurrentRenderer().getCurrentScene();
 
     private GameState state;
     public GameState getState() { return state; }
@@ -33,7 +33,7 @@ public abstract class RenderObject {
         return colour;
     }
 
-    public RajawaliVRExampleRenderer getRenderer() {
+    public Asteroids3DRenderer getRenderer() {
         return renderer;
     }
 

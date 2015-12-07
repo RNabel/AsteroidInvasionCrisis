@@ -4,7 +4,7 @@ import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.scene.RajawaliScene;
 
-import asteroids3d.RajawaliVRExampleRenderer;
+import asteroids3d.Asteroids3DRenderer;
 import asteroids3d.gamestate.objects.Manager;
 
 import java.util.List;
@@ -63,8 +63,14 @@ public class TopLevelManager extends Manager {
         rManager.rocketLaunched(orientation, origin);
     }
 
-    public RajawaliVRExampleRenderer getRenderer() {
+    public Asteroids3DRenderer getRenderer() {
         return super.getRenderer();
+    }
+
+    @Override
+    public void tearDown() {
+        eManager.tearDown();
+        rManager.tearDown();
     }
 
     public void createExplosion(Vector3 location) {

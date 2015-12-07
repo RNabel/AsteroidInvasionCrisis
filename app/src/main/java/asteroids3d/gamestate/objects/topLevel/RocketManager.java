@@ -50,14 +50,14 @@ public class RocketManager extends Manager {
 
             // Detect whether it reached asteroid.
             double[][] limits = getLimits(rocket.getLocation());
-            List<Object> objects = null;
+            List objects = null;
             try {
                 objects = tree.range(limits[1], limits[0]);
             } catch (KeySizeException e) {
                 e.printStackTrace();
             }
 
-            if (objects.size() > 0) {
+            if (objects != null && objects.size() > 0) {
                 removeRocket = true;
 
                 // Remove the asteroids in the explosion radius.
@@ -68,6 +68,9 @@ public class RocketManager extends Manager {
 
                 // Create Explosion.
                 createExplosion(rocket);
+
+                // Amend points.
+                getGameState().getPoints().asteroidDestroyed(getGameState().getCurrentLevel().getLevel());
             }
 
             if (removeRocket) {
@@ -77,6 +80,7 @@ public class RocketManager extends Manager {
         }
 
     }
+
 
     // Launch an unguided rocket.
     public void rocketLaunched(Quaternion direction, Vector3 origin) {
@@ -124,5 +128,13 @@ public class RocketManager extends Manager {
         output[1] = new double[]{location.x - explReach, location.y - explReach, location.z - explReach};
 
         return output;
+    }
+
+    @Override
+    public void tearDown() {
+        for (Rocket rocket :
+                rockets) {
+            getCurrentScene().removeChild(rocket.getShape());
+        }
     }
 }
