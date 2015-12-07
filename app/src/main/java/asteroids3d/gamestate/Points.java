@@ -47,7 +47,7 @@ public class Points {
                 (1 + LEVEL_FACTOR + currentLevel));
         runningTotal += newPoints;
 
-        if (newPoints < 0) {
+        if (runningTotal < 0) {
             state.setStateType(ProgramState.GAME_OVER);
         }
 
