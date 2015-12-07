@@ -3,13 +3,18 @@ package asteroids3d.gamestate;
 import java.util.HashMap;
 import java.util.Map;
 
+import asteroids3d.gamestate.objects.ProgramState;
+
 /**
  * Author rn30.
  */
 public class Points {
     private static final float LEVEL_FACTOR = 1.1f;
+    private final GameState state;
     private int numOfLives;
     boolean dirty = true;
+
+    private int runningTotal = 0;
 
     public enum pointTypes {
         ASTEROID_MISSED, ASTEROID_DESTROYED
@@ -26,7 +31,8 @@ public class Points {
     // Points achieved are associated with how they were received.
     private Map<pointTypes, Integer> pointMappings;
 
-    public Points() {
+    public Points(GameState state) {
+        this.state = state;
         // Initialize map based on static map.
         pointMappings = new HashMap<>();
         for (pointTypes type : valueMappings.keySet()) {
@@ -36,10 +42,16 @@ public class Points {
 
     private void increasePoints(pointTypes type, int number, int currentLevel) {
         int existingPoints = this.pointMappings.get(type);
-        this.pointMappings.put(type, Math.round (existingPoints + number *
-                        valueMappings.get(type) *
-                        (1 + LEVEL_FACTOR + currentLevel))
-        );
+        int newPoints = Math.round(existingPoints + number *
+                valueMappings.get(type) *
+                (1 + LEVEL_FACTOR + currentLevel));
+        runningTotal += newPoints;
+
+        if (newPoints < 0) {
+            state.setStateType(ProgramState.GAME_OVER);
+        }
+
+        this.pointMappings.put(type, newPoints);
     }
 
     // Point short hands.
@@ -53,13 +65,7 @@ public class Points {
     }
 
     public int getTotalPoints() {
-        int totalPoints = 0;
-
-        for (pointTypes type : pointMappings.keySet()) {
-            totalPoints += pointMappings.get(type);
-        }
-
-        return totalPoints;
+        return runningTotal;
     }
 
     public Map<pointTypes, Integer> getPointMappings() {

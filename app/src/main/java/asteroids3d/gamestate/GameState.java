@@ -63,7 +63,7 @@ public class GameState {
 
             case AFTER_LEVEL: // Check whether fire button clicked, if so transition to IN_LEVEL
                 // Wait for fire-button to be clicked.
-                displayString = "Level " + currentLevel.getLevel() + " is finished!\n\n\n\n\n\n\nReady for the next level?\nPress A.";
+                displayString = "Level " + (currentLevel.getLevel() + 1) + " is finished!\n\n\n\n\n\n\nReady for the next level?\nPress A.";
                 topLevelManager.update(deltaTime, totalTime);
                 if (renderer.nextState) {
                     // Create Level.
@@ -74,10 +74,8 @@ public class GameState {
                 break;
 
             case GAME_OVER:
-                displayString = "GAME OVER - An asteroid hit you!\n\n\n\n\n\n\nPress A to continue.";
                 topLevelManager.update(deltaTime, totalTime);
                 // Wait for fire button to be clicked, to return to main menu.
-                // TODO Render points.
                 if (renderer.nextState) {
                     setStateType(ProgramState.MENU);
                     renderer.nextState = false;
@@ -87,7 +85,7 @@ public class GameState {
     }
 
     private void setupFirstLevel() {
-        points = new Points();
+        points = new Points(this);
         currentLevel = new Level(0, currentTotalTime); // TODO test.
 
         // Instantiate all managers.
@@ -99,7 +97,7 @@ public class GameState {
         }
 
         asteroidManager = new AsteroidManager(currentLevel.getStartTimes(), currentScene);
-        topLevelManager = new TopLevelManager(currentLevel.getRocketsToStart(), currentScene); // TODO add raj scene here.
+        topLevelManager = new TopLevelManager(currentScene); // TODO add raj scene here.
     }
 
     // Getters and Setters.
@@ -123,9 +121,13 @@ public class GameState {
         // Update points at game over and display.
         switch (newType) {
             case GAME_OVER: // Update points and display, reset level.
-                if (renderer.isTabbed) {
-                    setStateType(ProgramState.MENU);
+                String tmpString = "";
+                if (points.getTotalPoints() < 0) {
+                    tmpString = "You missed too many asteroids!";
+                } else {
+                    tmpString = "An asteroid hit you!";
                 }
+                displayString = "GAME OVER - " + tmpString + "\n\nTotal points: " + points.getTotalPoints() + "\n\n\n\n\nPress A to continue.";
                 break;
             case AFTER_LEVEL: // Display points and start next level.
                 break;
@@ -140,41 +142,6 @@ public class GameState {
                 break;
         }
 
-    }
-
-    public ProgramState getCurrentProgramState() {
-        return currentProgramState;
-    }
-
-    public void notifyStateChanged(ProgramState newType) {
-        // Only continue if next state is IN_LEVEL or AFTER_LEVEL.
-        if (!(newType == ProgramState.IN_LEVEL ||
-                newType == ProgramState.AFTER_LEVEL)) return;
-
-//        EntryPoint.stateType current = ((EntryPoint) getApplet()).getGameStateType();
-//
-//        // Prepare level n + 1.
-//        if (current == EntryPoint.stateType.AFTER_LEVEL) {
-//            // Set up Level object;
-//            currentLevel = new Level(currentLevel.getLevel() + 1);
-//
-//            // Give asteroidManager the start times for the stones.
-//            asteroidManager = new AsteroidManager(currentLevel.getStartTimes());
-//
-//            // clear remaining explosions.
-//            topLevelManager.clearExplosions();
-//
-//            // Update number of rockets available.
-//            getState().getTopLevelManager().setRocketsAvailable(currentLevel.calculateRocketNumber());
-//
-//            // Reset time.
-//            this.currentTotalTime = 0l;
-//
-//        } else if (current == EntryPoint.stateType.IN_LEVEL) {
-//            // Update points.
-//            this.points.endOfLevelPointUpdate(state, currentLevel.getLevel());
-//        }
-        System.err.println("GameState:notifyStateChanged is not implemented!");
     }
 
     public int getTotalPoints() {

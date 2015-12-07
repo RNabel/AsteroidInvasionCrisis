@@ -14,7 +14,6 @@ import edu.wlu.cs.levy.CG.KDTree;
 
 public class Vehicle extends StationaryObject {
     private final double VEHICLE_SIZE = 10;
-    double distanceToNextAsteroid = -1;
 
     public Vehicle(Manager manager) {
         super(manager);
@@ -31,7 +30,6 @@ public class Vehicle extends StationaryObject {
     }
 
     public void updateState() {
-        // TODO Read input from bluetooth controller.
         Asteroids3DRenderer renderer = this.getManager().getRenderer();
         if (renderer.moveForward || renderer.moveBack || renderer.moveLeft || renderer.moveRight) {
             Camera currentCam = renderer.getCurrentCamera();
@@ -56,7 +54,7 @@ public class Vehicle extends StationaryObject {
             if (max.z > newPos.z &&
                     min.z < newPos.z &&
                     max.x > newPos.x &&
-                    min.x < newPos.z)
+                    min.x < newPos.x)
                 setLocation(newPos);
 
             // Reset the flag
