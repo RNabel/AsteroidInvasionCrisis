@@ -1,30 +1,25 @@
 package asteroids3d.gamestate.objects.topLevel;
 
-import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.scene.RajawaliScene;
 
-import asteroids3d.Asteroids3DRenderer;
 import asteroids3d.gamestate.objects.Manager;
 
-import java.util.List;
-
 public class TopLevelManager extends Manager {
-    private RocketManager rManager;
-    private ExplosionManager eManager;
-    private Vehicle vehicle;
+    private final RocketManager rManager;
+    private final ExplosionManager eManager;
+    private final Vehicle vehicle;
 
     public TopLevelManager(RajawaliScene scene) {
         super(scene);
         rManager = new RocketManager(this, scene);
-        eManager = new ExplosionManager(this, scene);
+        eManager = new ExplosionManager(scene);
         vehicle = new Vehicle(this);
     }
 
-    @Override
-    public void update(double deltaTime, long totalTime) {
-        eManager.update(deltaTime, totalTime);
-        rManager.update(deltaTime, totalTime);
+    public void update() {
+        eManager.update();
+        rManager.update();
         vehicle.updateState();
     }
 
@@ -44,11 +39,6 @@ public class TopLevelManager extends Manager {
         return getGameState().getCurrentLevel().getRocketsToStart() > 0;
     }
 
-    public Asteroids3DRenderer getRenderer() {
-        return super.getRenderer();
-    }
-
-    @Override
     public void tearDown() {
         eManager.tearDown();
         rManager.tearDown();
@@ -58,11 +48,8 @@ public class TopLevelManager extends Manager {
         eManager.createExplosion(location);
     }
 
-    public RocketManager getrManager() {
+    public RocketManager getRManager() {
         return rManager;
     }
 
-    public ExplosionManager geteManager() {
-        return eManager;
-    }
 }

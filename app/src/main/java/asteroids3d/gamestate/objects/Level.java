@@ -5,13 +5,13 @@ import java.util.TreeSet;
 
 // Holds the state of the level.
 public class Level {
-    private long levelLength = 30 * 1000000000L; // In wall-clock time in ns.
-    private long timeOffset;
-    public int rocketsToStart = 100;
-    private int totalAsteroids;
-    private Random random;
-    private TreeSet<Long> startTimes;
-    private int level;
+    private final long levelLength = 30 * 1000000000L; // In wall-clock time in ns.
+    private final long timeOffset;
+    private int rocketsToStart = 100;
+    private final int totalAsteroids;
+    private final Random random;
+    private final TreeSet<Long> startTimes;
+    private final int level;
 
     /**
      * Creates a new level object which keeps track of level difficulty and timing.
@@ -36,10 +36,10 @@ public class Level {
 
     // Helper methods.
     private int calculateAsteroidNumber() {
-        return (int) Math.round(this.level * 5 + 10);
+        return Math.round(this.level * 5 + 10);
     }
 
-    public int calculateRocketNumber () {
+    private int calculateRocketNumber() {
         return 20 + Math.round(4 * level);
     }
 

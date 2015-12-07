@@ -10,11 +10,7 @@ import asteroids3d.gamestate.GameState;
  * Author rn30.
  */
 public abstract class Manager {
-    //    private PApplet applet = GameState.getApplet();
-//    public PApplet getApplet() {
-//        return applet;
-//    }
-    private RajawaliScene currentScene;
+    private final RajawaliScene currentScene;
 
     public GameState getGameState() { return GameState.getState();  }
 
@@ -22,9 +18,7 @@ public abstract class Manager {
         return Asteroids3DRenderer.getBoundingBox();
     }
 
-    public abstract void update(double deltaTime, long totalTime);
-
-    public Manager(RajawaliScene currentScene) {
+    protected Manager(RajawaliScene currentScene) {
         this.currentScene = currentScene;
     }
 
@@ -32,13 +26,8 @@ public abstract class Manager {
         return currentScene;
     }
 
-    public void setCurrentScene(RajawaliScene currentScene) {
-        this.currentScene = currentScene;
-    }
-
     public Asteroids3DRenderer getRenderer() {
         return Asteroids3DRenderer.getCurrentRenderer();
     }
 
-    public abstract void tearDown();
 }

@@ -3,7 +3,7 @@ package asteroids3d.util;
 import java.util.Random;
 
 public class IntervalRandom extends Random {
-    public int nextInt(int lower, int upper) {
+    private int nextInt(int lower, int upper) {
         return lower + nextInt(upper - lower + 1);
     }
 

@@ -11,8 +11,6 @@ import asteroids3d.gamestate.objects.ProgramState;
 public class Points {
     private static final float LEVEL_FACTOR = 1.1f;
     private final GameState state;
-    private int numOfLives;
-    boolean dirty = true;
 
     private int runningTotal = 0;
 
@@ -29,7 +27,7 @@ public class Points {
     }
 
     // Points achieved are associated with how they were received.
-    private Map<pointTypes, Integer> pointMappings;
+    private final Map<pointTypes, Integer> pointMappings;
 
     public Points(GameState state) {
         this.state = state;
@@ -40,10 +38,9 @@ public class Points {
         }
     }
 
-    private void increasePoints(pointTypes type, int number, int currentLevel) {
+    private void increasePoints(pointTypes type, int currentLevel) {
         int existingPoints = this.pointMappings.get(type);
-        int newPoints = Math.round(existingPoints + number *
-                valueMappings.get(type) *
+        int newPoints = Math.round(existingPoints + valueMappings.get(type) *
                 (1 + LEVEL_FACTOR + currentLevel));
         runningTotal += newPoints;
 
@@ -57,26 +54,15 @@ public class Points {
     // Point short hands.
     public void asteroidDestroyed(int level) {
         pointTypes type = pointTypes.ASTEROID_DESTROYED;
-        increasePoints(type, 1, level);
+        increasePoints(type, level);
     }
     public void asteroidImpact(int level) {
         pointTypes type = pointTypes.ASTEROID_MISSED;
-        increasePoints(type, 1, level);
+        increasePoints(type, level);
     }
 
     public int getTotalPoints() {
         return runningTotal;
     }
 
-    public Map<pointTypes, Integer> getPointMappings() {
-        return pointMappings;
-    }
-
-    public void endOfLevelPointUpdate(GameState state, int level) {
-        // TODO Code to count up points.
-    }
-
-    public void setDirty(boolean dirty) {
-        this.dirty = dirty;
-    }
 }

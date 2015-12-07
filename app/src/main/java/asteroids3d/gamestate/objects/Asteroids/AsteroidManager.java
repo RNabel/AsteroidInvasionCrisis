@@ -2,7 +2,6 @@ package asteroids3d.gamestate.objects.Asteroids;
 
 import edu.wlu.cs.levy.CG.KDTree;
 
-import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.scene.RajawaliScene;
 import org.rajawali3d.util.RajLog;
@@ -10,21 +9,19 @@ import org.rajawali3d.util.RajLog;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.TreeSet;
 
 import asteroids3d.gamestate.objects.Manager;
 import asteroids3d.gamestate.objects.ProgramState;
 import asteroids3d.util.IntervalRandom;
 import edu.wlu.cs.levy.CG.KeyDuplicateException;
-import edu.wlu.cs.levy.CG.KeyMissingException;
 import edu.wlu.cs.levy.CG.KeySizeException;
 
 public class AsteroidManager extends Manager {
-    private List<Asteroid> asteroids;
-    private IntervalRandom random = new IntervalRandom();
+    private final List<Asteroid> asteroids;
+    private final IntervalRandom random = new IntervalRandom();
     private KDTree<Asteroid> asteroidLocationMap;
 
-    public AsteroidManager(TreeSet<Long> rockTimes, RajawaliScene scene) {
+    public AsteroidManager(RajawaliScene scene) {
         super(scene);
         this.asteroids = new ArrayList<>();
         asteroidLocationMap = new KDTree<>(3);
@@ -47,10 +44,6 @@ public class AsteroidManager extends Manager {
                 new Vector3(0, -0.05, 0),   // Velocity.
                 3); // Radius.
 
-        // 5% chance that rock splits.
-        boolean splits = random.nextDouble() < 0.05;
-        newAsteroid.setSplits(splits);
-
         // Add Asteroid to RajawaliScene.
         asteroids.add(newAsteroid);
 
@@ -58,8 +51,7 @@ public class AsteroidManager extends Manager {
         insertInLocationTree(newAsteroid.getLocation(), newAsteroid);
     }
 
-    @Override
-    public void update(double deltaTime, long totalTime) {
+    public void update(long totalTime) {
         Iterator<Long> longIt = getGameState().getCurrentLevel().getStartTimes().iterator();
 
         // Check if level over as no asteroids falling any more.
@@ -82,7 +74,6 @@ public class AsteroidManager extends Manager {
         asteroidLocationMap = new KDTree<>(3);
         while (it.hasNext()) {
             Asteroid asteroid = it.next();
-            Vector3 oldLocation = asteroid.getLocation().clone();
             boolean isOnScreen = asteroid.updatePosition();
 //            boolean isOnScreen = true;
 
@@ -102,7 +93,6 @@ public class AsteroidManager extends Manager {
         }
     }
 
-    @Override
     public void tearDown() {
         // Remove all asteroids from the scene.
         for (Asteroid asteroid :
@@ -116,11 +106,6 @@ public class AsteroidManager extends Manager {
         return asteroids;
     }
 
-    // Returns List within specific X interval.
-    public List<Asteroid> getRocksInInterval(Vector3 min, Vector3 max) {
-        return asteroids;
-    }
-
     public void deleteAsteroid(Asteroid asteroid) {
         // TODO make sure asteroid is removed from scene element and location tree.
 //        deleteFromLocationTree(asteroid.getLocation());
@@ -128,38 +113,11 @@ public class AsteroidManager extends Manager {
         this.asteroids.remove(asteroid);
     }
 
-    // Expects int to indicate whether to go right (0), left (1), or anywhere.
-    public Vector3 createRandomVelocity(boolean downwards, int right) {
-        IntervalRandom random = new IntervalRandom();
-        Quaternion direction;
-        double y = random.nextDouble(); // -1 to direct downwards.
-        double z = random.nextDouble();
-        double x = random.nextDouble();
-        boolean swap;
-        if (right == 0 || right == 1)
-            swap = right == 0;
-        else
-            swap = random.nextBoolean();
-
-        if (swap) x *= -1; // Flip to other side randomly.
-
-        Vector3 initialVel = new Vector3(x, y, z);
-
-        float speed = random.nextFloat() * 3;
-        initialVel.multiply(speed);
-        return initialVel;
-    }
-
     public KDTree<Asteroid> getAsteroidLocationMap() {
         return asteroidLocationMap;
     }
 
-    protected void updateLocationTree(Vector3 old, Vector3 newV, Asteroid asteroid) {
-//        deleteFromLocationTree(old);
-        insertInLocationTree(newV, asteroid);
-    }
-
-    protected void insertInLocationTree(Vector3 location, Asteroid asteroid) {
+    private void insertInLocationTree(Vector3 location, Asteroid asteroid) {
         double[] newArr = vectorToArray(location);
         KDTree<Asteroid> tree = getAsteroidLocationMap();
         try {
@@ -169,17 +127,7 @@ public class AsteroidManager extends Manager {
         }
     }
 
-    protected void deleteFromLocationTree(Vector3 location) {
-        double[] loc = vectorToArray(location);
-        KDTree<Asteroid> tree = getAsteroidLocationMap();
-        try {
-            tree.delete(loc);
-        } catch (KeySizeException | KeyMissingException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static double[] vectorToArray(Vector3 inputVector) {
+    private static double[] vectorToArray(Vector3 inputVector) {
         return new double[]{inputVector.x, inputVector.y, inputVector.z};
     }
 

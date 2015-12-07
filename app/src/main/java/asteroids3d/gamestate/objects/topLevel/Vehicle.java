@@ -13,30 +13,20 @@ import asteroids3d.gamestate.objects.StationaryObject;
 import edu.wlu.cs.levy.CG.KDTree;
 
 public class Vehicle extends StationaryObject {
-    private final double VEHICLE_SIZE = 10;
 
     public Vehicle(Manager manager) {
         super(manager);
         setLocation(getManager().getRenderer().getCameraPosition());
     }
 
-    @Override
-    public boolean contains(double x, double y) {
-        return false;
-    }
-
-    @Override
-    public void handleCollision(Object collidingObject) {
-    }
-
     public void updateState() {
         Asteroids3DRenderer renderer = this.getManager().getRenderer();
         if (renderer.moveForward || renderer.moveBack || renderer.moveLeft || renderer.moveRight) {
             Camera currentCam = renderer.getCurrentCamera();
-            String output = "Old position:" + currentCam.getPosition().toString() + "\t";
             final Vector3 movement = WorldParameters.FORWARD_AXIS.clone();
             movement.rotateBy(currentCam.getOrientation()).multiply(3);
             movement.inverse();
+
             if (renderer.moveRight) {
                 movement.rotateBy(new Quaternion().fromEuler(90, 0, 0));
             } else if(renderer.moveLeft) {
@@ -63,7 +53,7 @@ public class Vehicle extends StationaryObject {
             renderer.moveRight = false;
             renderer.moveBack = false;
         }
-        hasAndsteroidHit(); // Handle asteroid collision
+        handleAsteroidHit(); // Handle asteroid collision
 
         // Check for rocket fired.
         if (getManager().getRenderer().fireRocket) {
@@ -73,17 +63,17 @@ public class Vehicle extends StationaryObject {
     }
 
     // Check whether an asteroid hit.
-    public boolean hasAndsteroidHit() {
+    private void handleAsteroidHit() {
         Vector3 location = getLocation();
         double[] loc = vectorToArray(location);
         KDTree tree = getManager().getGameState().getAsteroidManager().getAsteroidLocationMap();
 
         if (tree.size() > 0) {
-            Object result = null;
+            Object result;
             try {
                 result = tree.nearest(loc);
             } catch (Exception e) {
-                return false;
+                return;
             }
             if (result != null && result instanceof Asteroid) {
                 Asteroid asteroidResult = (Asteroid) result;
@@ -99,19 +89,17 @@ public class Vehicle extends StationaryObject {
         }
         // TODO Could add distance display.
 
-        return true;
     }
 
     private void fireRocket() {
         Vector3 cameraPosition = getManager().getRenderer().getCameraPosition().clone();
-        Quaternion cameraOrientation = getManager().getRenderer().getCurrentCamera().getOrientation().clone();
         cameraPosition.y = cameraPosition.y / 2;
-        getManager().getGameState().getTopLevelManager().getrManager().
-                rocketLaunched(cameraOrientation, cameraPosition);
+        getManager().getGameState().getTopLevelManager().getRManager().
+                rocketLaunched(cameraPosition);
     }
 
     @Override
-    public void setLocation(Vector3 location) {
+    protected void setLocation(Vector3 location) {
         super.setLocation(location);
         Asteroids3DRenderer renderer = this.getManager().getRenderer();
 

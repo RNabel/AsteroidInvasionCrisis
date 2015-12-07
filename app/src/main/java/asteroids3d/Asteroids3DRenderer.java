@@ -23,7 +23,6 @@ import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Cube;
 import org.rajawali3d.primitives.Plane;
-import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.util.RajLog;
 import org.rajawali3d.vr.renderer.RajawaliVRRenderer;
 
@@ -31,9 +30,8 @@ import asteroids3d.gamestate.GameState;
 
 public class Asteroids3DRenderer extends RajawaliVRRenderer {
     private static Asteroids3DRenderer currentRenderer;
-    private static BoundingBox boundingBox;
+    private static final BoundingBox boundingBox;
 
-    private Plane mPlane;
     private Plane centralPane;
     private Plane leftTopPlane;
     private Plane leftBottomPlane;
@@ -46,7 +44,6 @@ public class Asteroids3DRenderer extends RajawaliVRRenderer {
     public boolean moveLeft;
     public boolean moveBack;
     public boolean fireRocket;
-    public boolean isTabbed;
     public boolean nextState;
 
     private Vector3 cameraPosition = new Vector3(0, 5, 0);
@@ -149,12 +146,12 @@ public class Asteroids3DRenderer extends RajawaliVRRenderer {
         return newMaterial;
     }
 
-    public void createFloor() {
+    private void createFloor() {
         //
         // -- Load a bitmap that represents the terrain. Its color values will
         //    be used to generate heights.
         //
-        mPlane = new Plane(500, 500, 100, 100);
+        Plane mPlane = new Plane(500, 500, 100, 100);
         mPlane.setPosition(0, 0, 0);
         mPlane.setDoubleSided(true);
         Material material1 = new Material();
@@ -186,12 +183,11 @@ public class Asteroids3DRenderer extends RajawaliVRRenderer {
         // Show HUD.
         showHudComponents();
         // Update game state.
-        state.updateGameState(deltaTime, elapsedTime); // TODO pass in touch.
+        state.updateGameState(elapsedTime); // TODO pass in touch.
 
         super.onRender(elapsedTime, deltaTime);
 
         isTriggered = (isTriggered + 1) % Integer.MAX_VALUE;
-        isTabbed = false;
     }
 
     /**
@@ -255,7 +251,6 @@ public class Asteroids3DRenderer extends RajawaliVRRenderer {
 
     public void handleTab() {
         // Extract orientation looked at.
-        isTabbed = true;
         moveForward = true;
         fireRocket = true;
     }
@@ -268,7 +263,7 @@ public class Asteroids3DRenderer extends RajawaliVRRenderer {
         return boundingBox;
     }
 
-    public Bitmap drawTextToBitmap(String gText) {
+    private Bitmap drawTextToBitmap(String gText) {
         Bitmap bitmap = Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888);
         bitmap.eraseColor(Color.TRANSPARENT);
         bitmap.setHasAlpha(true);

@@ -3,12 +3,10 @@ package asteroids3d;
 import org.rajawali3d.util.RajLog;
 import org.rajawali3d.vr.RajawaliVRActivity;
 
-import android.app.admin.DeviceAdminInfo;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.InputDevice;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.Window;
 import android.view.WindowManager;
 

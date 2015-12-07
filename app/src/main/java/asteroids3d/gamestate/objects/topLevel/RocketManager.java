@@ -2,14 +2,11 @@ package asteroids3d.gamestate.objects.topLevel;
 
 
 import org.rajawali3d.WorldParameters;
-import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.scene.RajawaliScene;
-import org.rajawali3d.util.RajLog;
 
 import asteroids3d.gamestate.objects.Asteroids.Asteroid;
 import asteroids3d.gamestate.objects.Manager;
-import asteroids3d.gamestate.objects.StationaryObject;
 import edu.wlu.cs.levy.CG.KDTree;
 import edu.wlu.cs.levy.CG.KeySizeException;
 
@@ -21,17 +18,16 @@ import java.util.List;
  * Author rn30.
  */
 public class RocketManager extends Manager {
-    Manager manager;
+    private final Manager manager;
 
     public RocketManager(Manager manager, RajawaliScene scene) {
         super(scene);
         this.manager = manager;
     }
 
-    List<Rocket> rockets = new ArrayList<>();
+    private final List<Rocket> rockets = new ArrayList<>();
 
-    @Override
-    public void update(double deltaTime, long totalTime) {
+    public void update() {
         // Update all rockets.
         Iterator<Rocket> it = rockets.iterator();
 
@@ -83,7 +79,7 @@ public class RocketManager extends Manager {
 
 
     // Launch an unguided rocket.
-    public void rocketLaunched(Quaternion direction, Vector3 origin) {
+    public void rocketLaunched(Vector3 origin) {
         TopLevelManager manager = (TopLevelManager) this.manager;
         if (manager.isRocketAvailable()) {
             manager.decreaseRocketsAvailable();
@@ -102,13 +98,8 @@ public class RocketManager extends Manager {
         }
     }
 
-    public void createExplosion(Rocket rocket) {
+    private void createExplosion(Rocket rocket) {
         ((TopLevelManager) this.manager).createExplosion(rocket.getLocation());
-    }
-
-    // Getters and Setters.
-    public List<Rocket> getRockets() {
-        return rockets;
     }
 
     // --- Helpers. ---
@@ -116,22 +107,20 @@ public class RocketManager extends Manager {
     /**
      * Calculates the upper and lower bounds of an exploding rocket.
      *
-     * @param location
+     * @param location The origin from which to calculate the limits.
      * @return two 3-element double arrays, [0] upper limit, [1] lower limit.
      */
     private double[][] getLimits(Vector3 location) {
-        double[] loc = StationaryObject.vectorToArray(location);
         double[][] output = new double[2][];
-        int explReach = ExplosionManager.explosionSize;
+        int explosionSize = ExplosionManager.explosionSize;
         // Set max.
-        output[0] = new double[]{location.x + explReach, location.y + explReach, location.z + explReach};
+        output[0] = new double[]{location.x + explosionSize, location.y + explosionSize, location.z + explosionSize};
         // Set min.
-        output[1] = new double[]{location.x - explReach, location.y - explReach, location.z - explReach};
+        output[1] = new double[]{location.x - explosionSize, location.y - explosionSize, location.z - explosionSize};
 
         return output;
     }
 
-    @Override
     public void tearDown() {
         for (Rocket rocket :
                 rockets) {

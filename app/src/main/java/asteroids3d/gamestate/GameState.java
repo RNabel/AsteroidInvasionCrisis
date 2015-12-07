@@ -13,7 +13,7 @@ import asteroids3d.gamestate.objects.topLevel.TopLevelManager;
 public class GameState {
     private static GameState state = null;
     private final Asteroids3DRenderer renderer;
-    private RajawaliScene currentScene;
+    private final RajawaliScene currentScene;
 
     private TopLevelManager topLevelManager;
     private AsteroidManager asteroidManager;
@@ -24,7 +24,6 @@ public class GameState {
     private long currentTotalTime = 0l;
 
     public String displayString;
-    private final String MENU_STRING = "Welcome to Asteroid Invasion Crisis! \n\n\n\n\n\n\nPress A to continue";
 
     public GameState(RajawaliScene currentState, Asteroids3DRenderer rajawaliVRExampleRenderer) { // TODO fix this.
         GameState.state = this;
@@ -39,21 +38,21 @@ public class GameState {
      * Only rendering-related code is placed in this method, all set-up related code is
      * placed in setStateType.
      *
-     * @param deltaTime - delta time, time elapsed from last rendered frame.
      */
-    public void updateGameState(double deltaTime, long totalTime) {
+    public void updateGameState(long totalTime) {
         this.currentTotalTime = totalTime;
 
         // Transition between game states. TODO at later point.
         switch (currentProgramState) {
             case IN_LEVEL:
                 displayString = "Rockets: " + topLevelManager.getRocketsAvailable() + "\n\n\n\n\n\n\n\nAsteroids: " + asteroidManager.getAsteroids().size() + "\tPoints: " + points.getTotalPoints();
-                asteroidManager.update(deltaTime, totalTime);
-                topLevelManager.update(deltaTime, totalTime);
+                asteroidManager.update(totalTime);
+                topLevelManager.update();
                 break;
 
             case MENU: // Check whether any option was selected.
                 // TODO Render option menu.
+                String MENU_STRING = "Welcome to Asteroid Invasion Crisis! \n\n\n\n\n\n\nPress A to continue";
                 displayString = MENU_STRING;
                 if (renderer.nextState) {
                     setStateType(ProgramState.IN_LEVEL);
@@ -64,7 +63,7 @@ public class GameState {
             case AFTER_LEVEL: // Check whether fire button clicked, if so transition to IN_LEVEL
                 // Wait for fire-button to be clicked.
                 displayString = "Level " + (currentLevel.getLevel() + 1) + " is finished!\n\n\n\n\n\n\nReady for the next level?\nPress A.";
-                topLevelManager.update(deltaTime, totalTime);
+                topLevelManager.update();
                 if (renderer.nextState) {
                     // Create Level.
                     setStateType(ProgramState.IN_LEVEL);
@@ -74,7 +73,7 @@ public class GameState {
                 break;
 
             case GAME_OVER:
-                topLevelManager.update(deltaTime, totalTime);
+                topLevelManager.update();
                 // Wait for fire button to be clicked, to return to main menu.
                 if (renderer.nextState) {
                     setStateType(ProgramState.MENU);
@@ -96,7 +95,7 @@ public class GameState {
             topLevelManager.tearDown();
         }
 
-        asteroidManager = new AsteroidManager(currentLevel.getStartTimes(), currentScene);
+        asteroidManager = new AsteroidManager(currentScene);
         topLevelManager = new TopLevelManager(currentScene); // TODO add raj scene here.
     }
 
@@ -121,7 +120,7 @@ public class GameState {
         // Update points at game over and display.
         switch (newType) {
             case GAME_OVER: // Update points and display, reset level.
-                String tmpString = "";
+                String tmpString;
                 if (points.getTotalPoints() < 0) {
                     tmpString = "You missed too many asteroids!";
                 } else {
@@ -144,16 +143,8 @@ public class GameState {
 
     }
 
-    public int getTotalPoints() {
-        return this.points.getTotalPoints();
-    }
-
     public Points getPoints() {
         return points;
-    }
-
-    public Long getCurrentFrameNumber() {
-        return this.currentTotalTime;
     }
 
     public Level getCurrentLevel() {
