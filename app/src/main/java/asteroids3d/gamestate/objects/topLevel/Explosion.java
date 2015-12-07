@@ -5,16 +5,19 @@ import android.graphics.Color;
 import org.rajawali3d.Object3D;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
+import org.rajawali3d.materials.textures.ATexture;
+import org.rajawali3d.materials.textures.Texture;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.util.RajLog;
 
+import asteroids3d.R;
 import asteroids3d.gamestate.objects.Asteroids.Asteroid;
 import asteroids3d.gamestate.objects.Manager;
 import asteroids3d.gamestate.objects.StationaryObject;
 
 public class Explosion extends StationaryObject {
-    private int radius = 100;
+    private int radius = 50;
     private static final int limit = 1;
     private double scale = 1;
 
@@ -25,12 +28,14 @@ public class Explosion extends StationaryObject {
         this.setLocation(location);
 
         // Create the shape. TODO finish add material.
-        explosion = new Sphere(radius, 12, 12); // Make non magical.
-        Material material = Asteroid.asteroidMaterial;;
-//        material.enableLighting(true);
-//        material.setColorInfluence(1f);
-//        material.setDiffuseMethod(new DiffuseMethod.Lambert());
-//        material.setColor(Color.MAGENTA);
+        explosion = new Sphere(radius, 10, 10); // Make non magical.
+        Material material = new Material();
+        try {
+            material.addTexture(new Texture("explosion", R.drawable.explosion));
+        } catch (ATexture.TextureException e) {
+            e.printStackTrace();
+        }
+
         explosion.setMaterial(material);
         explosion.setColor(Color.MAGENTA);
         explosion.setPosition(location);

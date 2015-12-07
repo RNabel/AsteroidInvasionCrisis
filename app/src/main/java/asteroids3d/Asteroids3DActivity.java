@@ -53,10 +53,15 @@ public class Asteroids3DActivity extends RajawaliVRActivity {
                 mRenderer.fireRocket = true;
             } else if (event.getScanCode() == 3 && event.getAction() == KeyEvent.ACTION_UP) { // A clicked.
                 mRenderer.nextState = true;
-            } else if (event.getScanCode() == 103 && event.getAction() == KeyEvent.ACTION_DOWN) {
+            } else if (event.getScanCode() == 103 && event.getAction() == KeyEvent.ACTION_DOWN) { // Forward.
                 mRenderer.moveForward = true;
+            } else if (event.getScanCode() == 108 && event.getAction() == KeyEvent.ACTION_DOWN) { // Back.
+                mRenderer.moveBack = true;
+            } else if (event.getScanCode() == 106 && event.getAction() == KeyEvent.ACTION_DOWN) { // Right.
+                mRenderer.moveRight = true;
+            } else if (event.getScanCode() == 105 && event.getAction() == KeyEvent.ACTION_DOWN) { // Left.
+                mRenderer.moveLeft = true;
             }
-            System.out.println(event);
         }
         return super.dispatchKeyEvent(event);
     }

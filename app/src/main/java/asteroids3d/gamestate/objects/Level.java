@@ -7,7 +7,7 @@ import java.util.TreeSet;
 public class Level {
     private long levelLength = 30 * 1000000000L; // In wall-clock time in ns.
     private long timeOffset;
-    public static final int rocketsToStart = 100;
+    public int rocketsToStart = 100;
     private int totalAsteroids;
     private Random random;
     private TreeSet<Long> startTimes;
@@ -23,19 +23,24 @@ public class Level {
         this.totalAsteroids = calculateAsteroidNumber();
         this.random = new Random();
         this.timeOffset = timeOffset;
+        this.rocketsToStart = calculateRocketNumber();
 
         // Create wave start times.
         startTimes = new TreeSet<>();
         createRockStartingTimes();
     }
 
+    public int getRocketsToStart() {
+        return rocketsToStart;
+    }
+
     // Helper methods.
     private int calculateAsteroidNumber() {
-        return (int) Math.round(Math.pow(10d, (double)this.level * 0.2 + 1d));
+        return (int) Math.round(this.level * 5 + 10);
     }
 
     public int calculateRocketNumber () {
-        return 1 + (int)Math.round(1.3 * level);
+        return 20 + Math.round(4 * level);
     }
 
     // Creates normally distributed value in [-totalInterval, 0]. Used to create relative timings for rock waves

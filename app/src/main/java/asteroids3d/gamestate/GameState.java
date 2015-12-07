@@ -24,7 +24,7 @@ public class GameState {
     private long currentTotalTime = 0l;
 
     public String displayString;
-    private final String MENU_STRING = "Welcome! press A to continue";
+    private final String MENU_STRING = "Welcome to Asteroid Invasion Crisis! \n\n\n\n\n\n\nPress A to continue";
 
     public GameState(RajawaliScene currentState, Asteroids3DRenderer rajawaliVRExampleRenderer) { // TODO fix this.
         GameState.state = this;
@@ -47,7 +47,7 @@ public class GameState {
         // Transition between game states. TODO at later point.
         switch (currentProgramState) {
             case IN_LEVEL:
-                displayString = "Rockets: " + topLevelManager.getRocketsAvailable() + "\n\n\n\n\n\n\n\n\nAsteroids: " + asteroidManager.getAsteroids().size();
+                displayString = "Rockets: " + topLevelManager.getRocketsAvailable() + "\n\n\n\n\n\n\n\n\n\n\nAsteroids: " + asteroidManager.getAsteroids().size() + "\nPoints: " + points.getTotalPoints();
                 asteroidManager.update(deltaTime, totalTime);
                 topLevelManager.update(deltaTime, totalTime);
                 break;
@@ -62,7 +62,7 @@ public class GameState {
 
             case AFTER_LEVEL: // Check whether fire button clicked, if so transition to IN_LEVEL
                 // Wait for fire-button to be clicked.
-                displayString = "Level " + currentLevel.getLevel() + " is finished!\n\n\n\n\n\n\nReady for the next level?";
+                displayString = "Level " + currentLevel.getLevel() + " is finished!\n\n\n\n\n\n\nReady for the next level?\nPress A.";
                 topLevelManager.update(deltaTime, totalTime);
                 if (renderer.nextState) {
                     // Create Level.
@@ -72,7 +72,7 @@ public class GameState {
                 break;
 
             case GAME_OVER:
-                displayString = "GAME OVER - An asteroid hit you!";
+                displayString = "GAME OVER - An asteroid hit you!\n\n\n\n\n\n\nPress A to continue.";
                 topLevelManager.update(deltaTime, totalTime);
                 // Wait for fire button to be clicked, to return to main menu.
                 // TODO Render points.
@@ -96,7 +96,7 @@ public class GameState {
         }
 
         asteroidManager = new AsteroidManager(currentLevel.getStartTimes(), currentScene);
-        topLevelManager = new TopLevelManager(Level.rocketsToStart, currentScene); // TODO add raj scene here.
+        topLevelManager = new TopLevelManager(currentLevel.getRocketsToStart(), currentScene); // TODO add raj scene here.
     }
 
     // Getters and Setters.

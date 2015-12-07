@@ -43,6 +43,9 @@ public class Asteroids3DRenderer extends RajawaliVRRenderer {
 
     public int isTriggered = 0;
     public boolean moveForward;
+    public boolean moveRight;
+    public boolean moveLeft;
+    public boolean moveBack;
     public boolean fireRocket;
     public boolean isTabbed;
     public boolean nextState;
@@ -294,10 +297,10 @@ public class Asteroids3DRenderer extends RajawaliVRRenderer {
 
         TextPaint textPaint = new TextPaint();
         textPaint.setColor(Color.GREEN);
-        textPaint.setTextSize(40);
+        textPaint.setTextSize(35);
         RectF rect = new RectF(0, 0, 300, 300);
         StaticLayout sl = new StaticLayout(gText,
-                textPaint, (int) rect.width(), Layout.Alignment.ALIGN_CENTER, 1, 1, false);
+                textPaint, (int) rect.width(), Layout.Alignment.ALIGN_NORMAL, 1, 1, false);
         canvas.save();
         sl.draw(canvas);
         canvas.restore();

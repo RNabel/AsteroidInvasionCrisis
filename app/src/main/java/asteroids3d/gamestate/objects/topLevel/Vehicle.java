@@ -33,18 +33,37 @@ public class Vehicle extends StationaryObject {
     public void updateState() {
         // TODO Read input from bluetooth controller.
         Asteroids3DRenderer renderer = this.getManager().getRenderer();
-        if (renderer.moveForward) {
+        if (renderer.moveForward || renderer.moveBack || renderer.moveLeft || renderer.moveRight) {
             Camera currentCam = renderer.getCurrentCamera();
             String output = "Old position:" + currentCam.getPosition().toString() + "\t";
             final Vector3 movement = WorldParameters.FORWARD_AXIS.clone();
             movement.rotateBy(currentCam.getOrientation()).multiply(3);
             movement.inverse();
+            if (renderer.moveRight) {
+                movement.rotateBy(new Quaternion().fromEuler(90, 0, 0));
+            } else if(renderer.moveLeft) {
+                movement.rotateBy(new Quaternion().fromEuler(-90, 0, 0));
+            } else if (renderer.moveBack) {
+                movement.rotateBy(new Quaternion().fromEuler(180, 0, 0));
+            }
             movement.y = 0;
             Vector3 newPos = renderer.getCameraPosition().clone().add(movement);
-            setLocation(newPos);
+
+            // Check whether newPos is within the game bounds.
+            Vector3 max = getManager().getBoundingBox().getMax();
+            Vector3 min = getManager().getBoundingBox().getMin();
+
+            if (max.z > newPos.z &&
+                    min.z < newPos.z &&
+                    max.x > newPos.x &&
+                    min.x < newPos.z)
+                setLocation(newPos);
 
             // Reset the flag
             renderer.moveForward = false;
+            renderer.moveLeft = false;
+            renderer.moveRight = false;
+            renderer.moveBack = false;
         }
         hasAndsteroidHit(); // Handle asteroid collision
 
